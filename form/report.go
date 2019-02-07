@@ -12,27 +12,27 @@ import (
 )
 
 func GenerateTextReport(db *sql.DB, day *time.Time) string {
-	logger.Infof("Report")
-	report := fmt.Sprintf("Отчет за *`%v`*:\n\n", day.Format("02 Jan 2006"))
+	logger.Info("Report")
+	report := fmt.Sprintf("Отчет за *`%s`*:\n\n", day.Format("02 Jan 2006"))
 	data, err := storage.FormGetOne(db, day)
 
 	if err != nil {
 		report += "Ошибка получения данных"
 	} else {
-		report += fmt.Sprintf("*Отчет подготовил*: `%v`\n", data.Username)
-		report += fmt.Sprintf("*Ветровой перенос за 24 часа*: `%v`\n", data.WindBlowing)
-		report += fmt.Sprintf("*Общая погодная тенденция*: `%v`\n", data.WeatherTrend)
-		report += fmt.Sprintf("*Показания доски HN24*: `%v`\n", data.Hn24)
-		report += fmt.Sprintf("*Показания доски H2D*: `%v`\n", data.H2d)
-		report += fmt.Sprintf("*Показания доски HST*: `%v`\n", data.Hst)
-		report += fmt.Sprintf("*Ощутиемые изменения*: `%v`\n", data.WeatherChanges)
-		report += fmt.Sprintf("*Дополнительный комментарий*: `%v`\n", data.Comments)
-		report += fmt.Sprintf("*Лавинный прогноз в альийской зоне*: `%v`\n", data.AvalancheAlp)
-		report += fmt.Sprintf("*Лавинный прогноз в зоне деревьев*: `%v`\n", data.AvalancheTree)
-		report += fmt.Sprintf("*Лавинный прогноз ниже зоны деревьев*: `%v`\n\n", data.AvalancheBTree)
+		report += fmt.Sprintf("*Отчет подготовил*: `%s`\n", data.Username)
+		report += fmt.Sprintf("*Ветровой перенос за 24 часа*: `%s`\n", data.WindBlowing)
+		report += fmt.Sprintf("*Общая погодная тенденция*: `%s`\n", data.WeatherTrend)
+		report += fmt.Sprintf("*Показания доски HN24*: `%d`\n", data.Hn24)
+		report += fmt.Sprintf("*Показания доски H2D*: `%d`\n", data.H2d)
+		report += fmt.Sprintf("*Показания доски HST*: `%d`\n", data.Hst)
+		report += fmt.Sprintf("*Ощутиемые изменения*: `%s`\n", data.WeatherChanges)
+		report += fmt.Sprintf("*Дополнительный комментарий*: `%s`\n", data.Comments)
+		report += fmt.Sprintf("*Лавинный прогноз в альпийской зоне*: `%s`\n", data.AvalancheAlp)
+		report += fmt.Sprintf("*Лавинный прогноз в зоне деревьев*: `%s`\n", data.AvalancheTree)
+		report += fmt.Sprintf("*Лавинный прогноз ниже зоны деревьев*: `%s`\n\n", data.AvalancheBTree)
 
 		for i, problem := range storage.FormGetProblemList(db, day) {
-			report += fmt.Sprintf("*Проблема %v*:\n*Тип проблемы*: `%v`\n*Экспозиция*: `%v`\n*Вероятность возникновения*: `%v`\n*Размер проблемы*: `%v`\n\n",
+			report += fmt.Sprintf("*Проблема %d*:\n*Тип проблемы*: `%s`\n*Экспозиция*: `%s`\n*Вероятность возникновения*: `%s`\n*Размер проблемы*: `%s`\n\n",
 				i, problem.ProblemType, string(problem.ProblemLocation), problem.ProblemLikelyHood, problem.ProblemSize)
 		}
 

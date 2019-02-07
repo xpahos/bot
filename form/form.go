@@ -23,7 +23,7 @@ func ShowNextQuestion(bot *tgbotapi.BotAPI, update *tgbotapi.Update, text string
 }
 
 func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
-	logger.Infof("Action")
+	logger.Info("Action")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 	now := time.Now()
@@ -47,7 +47,7 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "")
 		if storage.FormDeleteRecord(db, &now) {
 			msg.Text = "Отчет за сегодняшний день удален"
-			logger.Infof("User %v deleted report for %v", userName, now.Format("02 Jan 2006"))
+			logger.Infof("User %s deleted report for %s", userName, now.Format("02 Jan 2006"))
 		} else {
 			msg.Text = "Неудалось удалить отчет за сегодня"
 		}
@@ -69,6 +69,7 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 }
 
 func ProcessInlineFormWindBlowing(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
+	logger.Info("WindBlowing")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
@@ -97,11 +98,10 @@ func ProcessInlineFormWindBlowing(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbo
 		actionStateMap[userName] = ctx.ActionManageFormWeatherTrend
 		ShowNextQuestion(bot, update, ctx.FormWeatherTrendText, &ctx.FormWeatherTrend)
 	}
-
 }
 
 func ProcessInlineFormWeatherTrend(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
-	logger.Infof("123")
+	logger.Info("WeatherTrend")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
@@ -130,11 +130,10 @@ func ProcessInlineFormWeatherTrend(db *sql.DB, bot *tgbotapi.BotAPI, update *tgb
 		actionStateMap[userName] = ctx.ActionManageFormHN24
 		ShowNextQuestion(bot, update, ctx.FormHN24Text, nil)
 	}
-
 }
 
 func ProcessInlineFormAvalancheForecast(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, zone int, notify chan<- string) {
-	logger.Infof("123")
+	logger.Info("AvalancheForecast")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 

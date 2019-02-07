@@ -22,6 +22,7 @@ func DutyGetList(db *sql.DB, start *time.Time, end *time.Time) []ctx.DutyInfo {
 		logger.Errorf("Duties get error: %v", err)
 		return nil
 	}
+	defer rows.Close()
 
 	var buf ctx.DutyInfo
 	result := make([]ctx.DutyInfo, 0, 14)
@@ -33,6 +34,11 @@ func DutyGetList(db *sql.DB, start *time.Time, end *time.Time) []ctx.DutyInfo {
 		}
 
 		result = append(result, buf)
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.Errorf("Duties got error: %v", err)
+		return nil
 	}
 
 	return result

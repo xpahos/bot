@@ -27,7 +27,7 @@ func ShowNextQuestion(bot *tgbotapi.BotAPI, update *tgbotapi.Update, text string
 }
 
 func ProcessInlineUserActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
-	logger.Infof("123")
+	logger.Info("UserActionMenu")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 

@@ -13,6 +13,7 @@ import (
 )
 
 func ProcessInlineFormProblemMenu(bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, formProblemMap map[string]*ctx.FormProblemStruct) {
+	logger.Info("FormProblemMenu")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
@@ -32,7 +33,7 @@ func ProcessInlineFormProblemMenu(bot *tgbotapi.BotAPI, update *tgbotapi.Update,
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormProblemMenuText, message),
+		fmt.Sprintf("%s %s", ctx.FormProblemMenuText, message),
 	)
 
 	if showMenu {
@@ -51,6 +52,7 @@ func ProcessInlineFormProblemMenu(bot *tgbotapi.BotAPI, update *tgbotapi.Update,
 }
 
 func ProcessInlineFormType(bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, formProblemMap map[string]*ctx.FormProblemStruct) {
+	logger.Info("FormType")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
@@ -65,13 +67,13 @@ func ProcessInlineFormType(bot *tgbotapi.BotAPI, update *tgbotapi.Update, action
 
 		showMenu = false
 		formProblemMap[userName].ProblemType = message
-		logger.Infof("%v", message)
+		logger.Info(message)
 	}
 
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormProblemTypeText, message),
+		fmt.Sprintf("%s %s", ctx.FormProblemTypeText, message),
 	)
 
 	if showMenu {
@@ -87,7 +89,7 @@ func ProcessInlineFormType(bot *tgbotapi.BotAPI, update *tgbotapi.Update, action
 }
 
 func ProcessInlineFormLocations(bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, formProblemMap map[string]*ctx.FormProblemStruct) {
-	logger.Infof("123")
+	logger.Info("Locations")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
@@ -116,7 +118,7 @@ func ProcessInlineFormLocations(bot *tgbotapi.BotAPI, update *tgbotapi.Update, a
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormProblemLocationText, formProblemMap[userName].ProblemLocation),
+		fmt.Sprintf("%s %v", ctx.FormProblemLocationText, formProblemMap[userName].ProblemLocation),
 	)
 
 	if showMenu {
@@ -132,7 +134,7 @@ func ProcessInlineFormLocations(bot *tgbotapi.BotAPI, update *tgbotapi.Update, a
 }
 
 func ProcessInlineFormLikelyHood(bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, formProblemMap map[string]*ctx.FormProblemStruct) {
-	logger.Infof("123")
+	logger.Info("LikelyHood")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
@@ -169,7 +171,7 @@ func ProcessInlineFormLikelyHood(bot *tgbotapi.BotAPI, update *tgbotapi.Update, 
 }
 
 func ProcessInlineFormSize(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, formProblemMap map[string]*ctx.FormProblemStruct) {
-	logger.Infof("123")
+	logger.Info("FormSize")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
