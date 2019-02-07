@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
 
 	"database/sql"
@@ -70,33 +70,41 @@ func main() {
 	notifyReport := make(chan string, 1)
 	go util.NotifyNewReport(notifyReport, bot, db)
 
-	var actionStateMap map[string]int = make(map[string]int)
-	var trustedUsersCache map[string]bool = make(map[string]bool)
-	var formProblemMap map[string]*ctx.FormProblemStruct = make(map[string]*ctx.FormProblemStruct)
+	var (
+		actionStateMap    = make(map[string]int)
+		trustedUsersCache = make(map[string]bool)
+		formProblemMap    = make(map[string]*ctx.FormProblemStruct)
+	)
 
 	updates, err := bot.GetUpdatesChan(u)
+	if err != nil {
+		logger.Fatalf("failed to get updates: %v", err)
+		return
+	}
 	for update := range updates {
 		if update.Message == nil && update.CallbackQuery == nil {
 			continue
 		}
 
-		var userName string
-		var chatId int64
-		var msgId int
+		var (
+			userName string
+			chatID   int64
+			msgID    int
+		)
 		if update.CallbackQuery != nil {
 			userName = update.CallbackQuery.From.UserName
-			chatId = update.CallbackQuery.Message.Chat.ID
-			msgId = -1
+			chatID = update.CallbackQuery.Message.Chat.ID
+			msgID = -1
 		} else if update.Message != nil {
 			userName = update.Message.From.UserName
-			chatId = update.Message.Chat.ID
-			msgId = update.Message.MessageID
+			chatID = update.Message.Chat.ID
+			msgID = update.Message.MessageID
 		}
 
 		if !trustedUsersCache[userName] && !storage.UsersCheckTrusted(db, trustedUsersCache, &update) {
-			msg := tgbotapi.NewMessage(chatId, "Вы не авторизованы для выполнения этой операции")
-			if msgId != -1 {
-				msg.ReplyToMessageID = msgId
+			msg := tgbotapi.NewMessage(chatID, "Вы не авторизованы для выполнения этой операции")
+			if msgID != -1 {
+				msg.ReplyToMessageID = msgID
 			}
 			bot.Send(msg)
 			continue
