@@ -5,20 +5,20 @@ import (
 
 	"github.com/xpahos/bot/ctx"
 
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
 )
 
 func UsersCheckTrusted(db *sql.DB, cache map[string]bool, update *tgbotapi.Update) bool {
 	var userName string
-	var chatId int64
+	var chatID int64
 
 	if update.CallbackQuery != nil {
 		userName = update.CallbackQuery.From.UserName
-		chatId = update.CallbackQuery.Message.Chat.ID
+		chatID = update.CallbackQuery.Message.Chat.ID
 	} else if update.Message != nil {
 		userName = update.Message.From.UserName
-		chatId = update.Message.Chat.ID
+		chatID = update.Message.Chat.ID
 	}
 
 	userCache, err := db.Prepare("SELECT username, chat_id FROM users WHERE username = ?")
@@ -29,8 +29,8 @@ func UsersCheckTrusted(db *sql.DB, cache map[string]bool, update *tgbotapi.Updat
 	defer userCache.Close()
 
 	var user string
-	var dbChatId *int64
-	err = userCache.QueryRow(userName).Scan(&user, &dbChatId)
+	var dbChatID *int64
+	err = userCache.QueryRow(userName).Scan(&user, &dbChatID)
 	if err != nil {
 		logger.Errorf("Users get error: %v", err)
 		return false
@@ -41,12 +41,12 @@ func UsersCheckTrusted(db *sql.DB, cache map[string]bool, update *tgbotapi.Updat
 		return false
 	}
 
-	if dbChatId == nil {
-		userChatId, err := db.Prepare("UPDATE users SET chat_id = ? WHERE username = ?")
+	if dbChatID == nil {
+		userChatID, err := db.Prepare("UPDATE users SET chat_id = ? WHERE username = ?")
 		if err != nil {
 			logger.Errorf("Users get chat_id error: %v", err)
 		} else {
-			_, err = userChatId.Exec(chatId, userName)
+			_, err = userChatID.Exec(chatID, userName)
 
 			if err != nil {
 				logger.Errorf("Users get chat_id error: %v", err)
@@ -102,17 +102,17 @@ func UsersGetList(db *sql.DB) []string {
 	userSelect, err := db.Query("SELECT username FROM users ORDER BY username LIMIT 16")
 	if err != nil {
 		logger.Errorf("Users get error: %v", err)
-		return make([]string, 0, 0)
+		return make([]string, 0)
 	}
 	defer userSelect.Close()
 
 	var buf string
-	var result []string = make([]string, 0, 9)
+	result := make([]string, 0, 9)
 	for userSelect.Next() {
 		err = userSelect.Scan(&buf)
 		if err != nil {
 			logger.Errorf("Users get error: %v", err)
-			return make([]string, 0, 0)
+			return make([]string, 0)
 		}
 
 		if len(buf) != 0 {
@@ -123,21 +123,21 @@ func UsersGetList(db *sql.DB) []string {
 	return result
 }
 
-func UsersGetChatIdList(db *sql.DB) []int64 {
+func UsersGetChatIDList(db *sql.DB) []int64 {
 	userSelect, err := db.Query("SELECT chat_id FROM users")
 	if err != nil {
 		logger.Errorf("Users get error: %v", err)
-		return make([]int64, 0, 0)
+		return make([]int64, 0)
 	}
 	defer userSelect.Close()
 
 	var buf *int64
-	var result []int64 = make([]int64, 0, 9)
+	result := make([]int64, 0, 9)
 	for userSelect.Next() {
 		err = userSelect.Scan(&buf)
 		if err != nil {
 			logger.Errorf("Users get error: %v", err)
-			return make([]int64, 0, 0)
+			return make([]int64, 0)
 		}
 
 		if buf != nil {

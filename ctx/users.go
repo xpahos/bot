@@ -1,7 +1,7 @@
 package ctx
 
 import (
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 var TrustedUsers = map[string]bool{"xpahos": true, "Khalmax": true}
