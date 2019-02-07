@@ -40,7 +40,7 @@ var FormProblemType = tgbotapi.NewInlineKeyboardMarkup(
     []tgbotapi.InlineKeyboardButton{
         tgbotapi.NewInlineKeyboardButtonData("Мокрые доски", "WET_SLAB"),
         tgbotapi.NewInlineKeyboardButtonData("Падение карнизов", "CORN_FALL"),
-        tgbotapi.NewInlineKeyboardButtonData("Грунтовые", "GLIDE"),
+        tgbotapi.NewInlineKeyboardButtonData("Снежные платки", "GLIDE"),
     },
 )
 
