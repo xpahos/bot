@@ -382,6 +382,7 @@ func FormGetProblemList(db *sql.DB, day *time.Time) []ctx.FormProblemReadOnlyStr
 		logger.Errorf("Form get error: %v", err)
 		return nil
 	}
+	defer rows.Close()
 
 	var buf ctx.FormProblemReadOnlyStruct
 	result := make([]ctx.FormProblemReadOnlyStruct, 0, 14)
@@ -393,6 +394,11 @@ func FormGetProblemList(db *sql.DB, day *time.Time) []ctx.FormProblemReadOnlyStr
 		}
 
 		result = append(result, buf)
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.Errorf("GetProblemList got error: %v", err)
+		return nil
 	}
 
 	return result
@@ -419,6 +425,7 @@ func FormGetStatusList(db *sql.DB, day *time.Time, confirm bool) []ctx.FormStatu
 		logger.Errorf("Form get error: %v", err)
 		return nil
 	}
+	defer rows.Close()
 
 	var buf ctx.FormStatusStruct
 	result := make([]ctx.FormStatusStruct, 0, 14)
@@ -432,6 +439,10 @@ func FormGetStatusList(db *sql.DB, day *time.Time, confirm bool) []ctx.FormStatu
 		result = append(result, buf)
 	}
 
-	return result
+	if err := rows.Err(); err != nil {
+		logger.Errorf("GetStatusList got error: %v", err)
+		return nil
+	}
 
+	return result
 }

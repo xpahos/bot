@@ -111,8 +111,9 @@ func main() {
 		}
 
 		if update.CallbackQuery != nil {
-			logger.Infof("Inline: %v %v %v", update.CallbackQuery.Data, userName, actionStateMap[userName])
-			switch actionStateMap[userName] {
+			actionStateIdx := actionStateMap[userName]
+			logger.Infof("Inline: %s %s %d", update.CallbackQuery.Data, userName, actionStateIdx)
+			switch actionStateIdx {
 			case ctx.ActionManageFormActionMenu:
 				form.ProcessInlineFormActionMenu(db, bot, &update, actionStateMap)
 			case ctx.ActionManageFormWindBlowing:
@@ -143,6 +144,8 @@ func main() {
 				duty.ProcessInlineDutyEdit(db, bot, &update, actionStateMap, true)
 			case ctx.ActionManageDutyDelete:
 				duty.ProcessInlineDutyEdit(db, bot, &update, actionStateMap, false)
+			default:
+				logger.Infof("unknown action state index %d", actionStateIdx)
 			}
 
 			continue
@@ -155,7 +158,7 @@ func main() {
 		//msg.ReplyToMessageID = update.Message.MessageID
 		msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
-		logger.Infof("[%v] %v %v", userName, message, update.Message.IsCommand())
+		logger.Infof("[%s] %s %v", userName, message, update.Message.IsCommand())
 		if !update.Message.IsCommand() {
 			switch actionStateMap[userName] {
 			case ctx.ActionManageFormHN24:
@@ -213,7 +216,7 @@ func main() {
 			case ctx.ActionManageUserAdd:
 				if storage.UsersAddOne(db, &message) {
 					msg.Text = "Пользователь добавлен"
-					logger.Infof("User %v added user %v", userName, message)
+					logger.Infof("User %s added user %s", userName, message)
 				} else {
 					msg.Text = "Пользователь уже существует или его имя длинее 255 символов"
 				}
@@ -221,7 +224,7 @@ func main() {
 			case ctx.ActionManageUserDelete:
 				if storage.UsersDeleteOne(db, &message) {
 					msg.Text = "Пользователь удален"
-					logger.Infof("User %v deleted user %v", userName, message)
+					logger.Infof("User %s deleted user %s", userName, message)
 				} else {
 					msg.Text = "Не удалось удалить пользователя"
 				}
@@ -244,7 +247,7 @@ func main() {
 				case "form":
 					duty := storage.DutyGetOne(db, &now)
 					if duty != userName {
-						msg.Text = fmt.Sprintf("Сегодня дежурный %v", duty)
+						msg.Text = fmt.Sprintf("Сегодня дежурный %s", duty)
 						actionStateMap[userName] = ctx.ActionNone
 					} else {
 						msg.Text = ctx.FormActionMenuText
