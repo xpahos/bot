@@ -331,7 +331,7 @@ func FormDecline(db *sql.DB, day *time.Time, userName *string, msg *string) bool
 			return false
 		}
 	} else {
-		formStatus, err = db.Prepare("UPDATE form_status SET status = 'YES', comment = ? WHERE date = ? AND username = ?")
+		formStatus, err = db.Prepare("UPDATE form_status SET status = 'NO', comment = ? WHERE date = ? AND username = ?")
 		if err != nil {
 			logger.Infof("Form decline error: %v", err)
 			return false
