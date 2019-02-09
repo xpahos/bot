@@ -37,7 +37,7 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 
 		result := fmt.Sprintf("Дежурства с *%v* по *%v*\n\n", start.Format("02 Jan 2006"), end.Format("02 Jan 2006"))
 		for _, duty := range duties {
-			result = fmt.Sprintf("%v*%v* - %v\n", result, duty.Date, duty.User)
+			result = fmt.Sprintf("%v*%v* - `%v`\n", result, duty.Date, duty.User)
 		}
 
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, result)
