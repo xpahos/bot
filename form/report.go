@@ -43,7 +43,7 @@ func GenerateTextReport(db *sql.DB, day *time.Time) string {
 		report += "\n"
 
 		report += "*Форму отклонили*:\n"
-		for _, status := range storage.FormGetStatusList(db, day, true) {
+		for _, status := range storage.FormGetStatusList(db, day, false) {
 			report += fmt.Sprintf("`%v` - `%v`\n", status.Username, string(status.Comment))
 		}
 		report += "\n"
