@@ -304,7 +304,7 @@ func FormConfirm(db *sql.DB, day *time.Time, userName *string) bool {
 }
 
 func FormDecline(db *sql.DB, day *time.Time, userName *string, msg *string) bool {
-	formStatus, err := db.Prepare("SELECT count(id) FROM form_status WHERE date = ? and userName = ?")
+	formStatus, err := db.Prepare("SELECT count(id) FROM form_status WHERE date = ? and username = ?")
 	if err != nil {
 		logger.Infof("Form decline error: %v", err)
 		return false
