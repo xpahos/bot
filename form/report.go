@@ -38,13 +38,13 @@ func GenerateTextReport(db *sql.DB, day *time.Time) string {
 
 		report += "*Форму подтвердили*:\n"
 		for _, status := range storage.FormGetStatusList(db, day, true) {
-			report += status.Username + "\n"
+			report += fmt.Sprintf("`%v`\n", status.Username)
 		}
 		report += "\n"
 
 		report += "*Форму отклонили*:\n"
 		for _, status := range storage.FormGetStatusList(db, day, true) {
-			report += status.Username + " - " + status.Comment + "\n"
+			report += fmt.Sprintf("`%v` - `%v`\n", status.Username, string(status.Comment))
 		}
 		report += "\n"
 
