@@ -428,13 +428,18 @@ func FormGetStatusList(db *sql.DB, day *time.Time, confirm bool) []ctx.FormStatu
 	defer rows.Close()
 
 	var buf ctx.FormStatusStruct
+    var comment sql.NullString
 	result := make([]ctx.FormStatusStruct, 0, 14)
 	for rows.Next() {
-		err = rows.Scan(&buf.Username, &buf.Comment)
+		err = rows.Scan(&buf.Username, &comment)
 		if err != nil {
 			logger.Errorf("Form get error: %v", err)
 			return nil
 		}
+
+        if comment.Valid {
+            buf.Comment = comment.String
+        }
 
 		result = append(result, buf)
 	}
