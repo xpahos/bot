@@ -36,11 +36,22 @@ func InitDB(db *sql.DB) error {
         hn24 INT,
         h2d INT,
         hst INT,
-        weather_changes VARCHAR(255),
         comments TEXT,
         avalanche_forecast_alp ENUM('1', '2', '3', '4', '5'),
         avalanche_forecast_tree ENUM('1', '2', '3', '4', '5'),
         avalanche_forecast_btree ENUM('1', '2', '3', '4', '5')
+    ) ENGINE=INNODB CHARSET=utf8;`)
+
+	if err != nil {
+		logger.Errorf("DB init error: %v", err)
+		return err
+	}
+
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS form_weather_changes (
+        id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        date DATE NOT NULL,
+        username VARCHAR(255),
+        changes VARCHAR(255)
     ) ENGINE=INNODB CHARSET=utf8;`)
 
 	if err != nil {

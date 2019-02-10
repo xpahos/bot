@@ -18,7 +18,7 @@ import (
 	"github.com/xpahos/bot/form"
 	"github.com/xpahos/bot/storage"
 	"github.com/xpahos/bot/users"
-	"github.com/xpahos/bot/util"
+	"github.com/xpahos/bot/helpers"
 )
 
 var logPath = flag.String("log", "bot.log", "Log path")
@@ -68,7 +68,7 @@ func main() {
 	u.Timeout = 1
 
 	notifyReport := make(chan string, 1)
-	go util.NotifyNewReport(notifyReport, bot, db)
+	go helpers.NotifyNewReport(notifyReport, bot, db)
 
 	var (
 		actionStateMap    = make(map[string]int)
@@ -120,6 +120,8 @@ func main() {
 				form.ProcessInlineFormWindBlowing(db, bot, &update, actionStateMap)
 			case ctx.ActionManageFormWeatherTrend:
 				form.ProcessInlineFormWeatherTrend(db, bot, &update, actionStateMap)
+            case ctx.ActionManageFormWeatherChangesAdditional:
+                form.ProcessInlineFormWeatherChangesAdditional(bot, &update, actionStateMap)
 			case ctx.ActionManageFormProblemMenu:
 				form.ProcessInlineFormProblemMenu(bot, &update, actionStateMap, formProblemMap)
 			case ctx.ActionManageFormProblemType:
@@ -179,7 +181,7 @@ func main() {
 				}
 			case ctx.ActionManageFormHST:
 				if storage.FormUpdateHST(db, &now, &message) {
-					msg.Text = "Ощутимые изменения(выберите или введите произвольный вариант)"
+                    msg.Text = ctx.FormWeatherChangesText
 					msg.ReplyMarkup = ctx.FormWeatherChanges
 					actionStateMap[userName] = ctx.ActionManageFormWeatherChanges
 				} else {
@@ -187,12 +189,12 @@ func main() {
 					actionStateMap[userName] = ctx.ActionManageFormHST
 				}
 			case ctx.ActionManageFormWeatherChanges:
-				if storage.FormUpdateWeatherChanges(db, &now, &message) {
-					msg.Text = ctx.FormProblemMenuText
+				if storage.FormUpdateWeatherChanges(db, &now, &userName, &message) {
+					msg.Text = ctx.FormWeatherChangesAdditionalText
 					msg.ReplyMarkup = ctx.YesNoMenu
-					actionStateMap[userName] = ctx.ActionManageFormProblemMenu
+					actionStateMap[userName] = ctx.ActionManageFormWeatherChangesAdditional
 				} else {
-					msg.Text = "Ощутимые изменения(выбрать или ввести произвольный вариант)"
+					msg.Text = ctx.FormWeatherChangesText
 					msg.ReplyMarkup = ctx.FormWeatherChanges
 					actionStateMap[userName] = ctx.ActionManageFormWeatherChanges
 				}

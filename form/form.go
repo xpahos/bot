@@ -3,6 +3,7 @@ package form
 import (
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/storage"
+	"github.com/xpahos/bot/helpers"
 
 	"database/sql"
 	"fmt"
@@ -11,16 +12,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
 )
-
-func ShowNextQuestion(bot *tgbotapi.BotAPI, update *tgbotapi.Update, text string, menu *tgbotapi.InlineKeyboardMarkup) {
-	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, text)
-	if menu != nil {
-		msg.ReplyMarkup = menu
-	} else {
-		msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-	}
-	bot.Send(msg)
-}
 
 func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
 	logger.Info("Action")
@@ -36,7 +27,7 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 
 		if storage.FormInitRecord(db, &now, &userName) {
 			actionStateMap[userName] = ctx.ActionManageFormWindBlowing
-			ShowNextQuestion(bot, update, ctx.FormWindBlowingText, &ctx.FormWindBlowing)
+			helpers.ShowNextQuestionInline(bot, update, ctx.FormWindBlowingText, &ctx.FormWindBlowing)
 		} else {
 			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Отчет уже существует")
 			bot.Send(msg)
@@ -96,7 +87,7 @@ func ProcessInlineFormWindBlowing(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbo
 		now := time.Now()
 		storage.FormUpdateWindBlowing(db, &now, &message)
 		actionStateMap[userName] = ctx.ActionManageFormWeatherTrend
-		ShowNextQuestion(bot, update, ctx.FormWeatherTrendText, &ctx.FormWeatherTrend)
+		helpers.ShowNextQuestionInline(bot, update, ctx.FormWeatherTrendText, &ctx.FormWeatherTrend)
 	}
 }
 
@@ -128,8 +119,31 @@ func ProcessInlineFormWeatherTrend(db *sql.DB, bot *tgbotapi.BotAPI, update *tgb
 		now := time.Now()
 		storage.FormUpdateWeatherTrend(db, &now, &message)
 		actionStateMap[userName] = ctx.ActionManageFormHN24
-		ShowNextQuestion(bot, update, ctx.FormHN24Text, nil)
+		helpers.ShowNextQuestionInline(bot, update, ctx.FormHN24Text, nil)
 	}
+}
+
+func ProcessInlineFormWeatherChangesAdditional(bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
+    logger.Info("WeatherChangesAdditional")
+	userName := update.CallbackQuery.From.UserName
+	message := update.CallbackQuery.Data
+
+	msg := tgbotapi.NewEditMessageText(
+		update.CallbackQuery.Message.Chat.ID,
+		update.CallbackQuery.Message.MessageID,
+		fmt.Sprintf("%v %v", ctx.FormWeatherChangesAdditionalText, message),
+	)
+
+	bot.Send(msg)
+
+    switch message {
+        case "Y":
+		    actionStateMap[userName] = ctx.ActionManageFormWeatherChanges
+            helpers.ShowNextQuestionReply(bot, update, ctx.FormWeatherChangesText, &ctx.FormWeatherChanges)
+        default:
+		    actionStateMap[userName] = ctx.ActionManageFormProblemMenu
+            helpers.ShowNextQuestionInline(bot, update, ctx.FormProblemMenuText, &ctx.YesNoMenu)
+    }
 }
 
 func ProcessInlineFormAvalancheForecast(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, zone int, notify chan<- string) {
@@ -172,13 +186,13 @@ func ProcessInlineFormAvalancheForecast(db *sql.DB, bot *tgbotapi.BotAPI, update
 		storage.FormUpdateAvalanche(db, &now, &message, zone)
 		if zone == ctx.Alp {
 			actionStateMap[userName] = ctx.ActionManageFormAvalancheForecastTree
-			ShowNextQuestion(bot, update, ctx.FormAvalancheForecastTreeText, &ctx.FormAvalancheForecast)
+			helpers.ShowNextQuestionInline(bot, update, ctx.FormAvalancheForecastTreeText, &ctx.FormAvalancheForecast)
 		} else if zone == ctx.Tree {
 			actionStateMap[userName] = ctx.ActionManageFormAvalancheForecastBTree
-			ShowNextQuestion(bot, update, ctx.FormAvalancheForecastBTreeText, &ctx.FormAvalancheForecast)
+			helpers.ShowNextQuestionInline(bot, update, ctx.FormAvalancheForecastBTreeText, &ctx.FormAvalancheForecast)
 		} else if zone == ctx.BTree {
 			storage.FormComplete(db, &now)
-			ShowNextQuestion(bot, update, ctx.FormCompletedText, nil)
+			helpers.ShowNextQuestionInline(bot, update, ctx.FormCompletedText, nil)
 			if notify != nil {
 				notify <- userName
 			}

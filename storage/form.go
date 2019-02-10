@@ -54,6 +54,20 @@ func FormDeleteRecord(db *sql.DB, day *time.Time) bool {
 		return false
 	}
 
+	formDelete, err = db.Prepare("DELETE FROM form_weather_changes WHERE date = ?")
+	if err != nil {
+		logger.Infof("Form delete error: %v", err)
+		return false
+	}
+	defer formDelete.Close()
+
+	_, err = formDelete.Exec(day.Format("2006-01-02"))
+	if err != nil {
+		logger.Infof("Form delete error: %v", err)
+		return false
+	}
+
+
 	return true
 }
 
@@ -164,15 +178,15 @@ func FormUpdateHST(db *sql.DB, day *time.Time, msg *string) bool {
 	return true
 }
 
-func FormUpdateWeatherChanges(db *sql.DB, day *time.Time, msg *string) bool {
-	formUpdate, err := db.Prepare("UPDATE form SET weather_changes = ? WHERE date = ?")
+func FormUpdateWeatherChanges(db *sql.DB, day *time.Time, userName *string, msg *string) bool {
+	formUpdate, err := db.Prepare("INSERT INTO form_weather_changes(date, username, changes) VALUES(?, ?, ?)")
 	if err != nil {
 		logger.Infof("%v", err)
 		return false
 	}
 	defer formUpdate.Close()
 
-	_, err = formUpdate.Exec(msg, day.Format("2006-01-02"))
+	_, err = formUpdate.Exec(day.Format("2006-01-02"), *userName, *msg)
 	if err != nil {
 		logger.Infof("%v", err)
 		return false
@@ -351,7 +365,7 @@ func FormGetOne(db *sql.DB, day *time.Time) (ctx.FormStruct, error) {
 	var form ctx.FormStruct
 
 	formSelect, err := db.Prepare(`SELECT 
-        username, wind_blowing, weather_trend, hn24, h2d, hst, weather_changes, comments, avalanche_forecast_alp, avalanche_forecast_tree, avalanche_forecast_btree
+        username, wind_blowing, weather_trend, hn24, h2d, hst, comments, avalanche_forecast_alp, avalanche_forecast_tree, avalanche_forecast_btree
         FROM form WHERE date = ?`)
 	if err != nil {
 		logger.Errorf("Form get error: %v", err)
@@ -360,13 +374,48 @@ func FormGetOne(db *sql.DB, day *time.Time) (ctx.FormStruct, error) {
 	defer formSelect.Close()
 
 	err = formSelect.QueryRow(day.Format("2006-01-02")).Scan(&form.Username, &form.WindBlowing, &form.WeatherTrend, &form.Hn24, &form.H2d, &form.Hst,
-		&form.WeatherChanges, &form.Comments, &form.AvalancheAlp, &form.AvalancheTree, &form.AvalancheBTree)
+		&form.Comments, &form.AvalancheAlp, &form.AvalancheTree, &form.AvalancheBTree)
 	if err != nil {
 		logger.Errorf("Form get error: %v", err)
 		return form, err
 	}
 
 	return form, nil
+}
+
+func FormGetWeatherChangesList(db *sql.DB, day *time.Time) []string {
+	formSelect, err := db.Prepare("SELECT changes FROM form_weather_changes WHERE date = ?")
+	if err != nil {
+		logger.Errorf("Form get weather changes error: %v", err)
+		return nil
+	}
+	defer formSelect.Close()
+
+	rows, err := formSelect.Query(day.Format("2006-01-02"))
+	if err != nil {
+		logger.Errorf("Form get weather changes error: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var buf string
+	result := make([]string, 0, 1)
+	for rows.Next() {
+		err = rows.Scan(&buf)
+		if err != nil {
+		    logger.Errorf("Form get weather changes error: %v", err)
+			return nil
+		}
+
+		result = append(result, buf)
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.Errorf("GetWeatherChangesList got error: %v", err)
+		return nil
+	}
+
+	return result
 }
 
 func FormGetProblemList(db *sql.DB, day *time.Time) []ctx.FormProblemReadOnlyStruct {

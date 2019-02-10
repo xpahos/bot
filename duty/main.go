@@ -3,6 +3,7 @@ package duty
 import (
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/storage"
+	"github.com/xpahos/bot/helpers"
 
 	"database/sql"
 	"fmt"
@@ -11,14 +12,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
 )
-
-func ShowNextQuestion(bot *tgbotapi.BotAPI, update *tgbotapi.Update, text string, menu *tgbotapi.InlineKeyboardMarkup) {
-	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, text)
-	if menu != nil {
-		msg.ReplyMarkup = menu
-	}
-	bot.Send(msg)
-}
 
 func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
 	logger.Infof("123")
@@ -83,12 +76,12 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 			showMenu = false
 
 			actionStateMap[userName] = ctx.ActionManageDutyAdd
-			ShowNextQuestion(bot, update, ctx.DutyDateText, &dateListMenu)
+			helpers.ShowNextQuestionInline(bot, update, ctx.DutyDateText, &dateListMenu)
 		case "DELETE":
 			showMenu = false
 
 			actionStateMap[userName] = ctx.ActionManageDutyDelete
-			ShowNextQuestion(bot, update, ctx.DutyDateText, &dateListMenu)
+			helpers.ShowNextQuestionInline(bot, update, ctx.DutyDateText, &dateListMenu)
 		}
 	}
 

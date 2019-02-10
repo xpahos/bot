@@ -19,13 +19,18 @@ func GenerateTextReport(db *sql.DB, day *time.Time) string {
 	if err != nil {
 		report += "Ошибка получения данных"
 	} else {
+        var changes string
+        for _, change := range storage.FormGetWeatherChangesList(db, day) {
+            changes += change + " "
+        }
+
 		report += fmt.Sprintf("*Отчет подготовил*: `%s`\n", data.Username)
 		report += fmt.Sprintf("*Ветровой перенос за 24 часа*: `%s`\n", data.WindBlowing)
 		report += fmt.Sprintf("*Общая погодная тенденция*: `%s`\n", data.WeatherTrend)
 		report += fmt.Sprintf("*Показания доски HN24*: `%d`\n", data.Hn24)
 		report += fmt.Sprintf("*Показания доски H2D*: `%d`\n", data.H2d)
 		report += fmt.Sprintf("*Показания доски HST*: `%d`\n", data.Hst)
-		report += fmt.Sprintf("*Ощутиемые изменения*: `%s`\n", data.WeatherChanges)
+		report += fmt.Sprintf("*Ощутиемые изменения*: `%s`\n", changes)
 		report += fmt.Sprintf("*Дополнительный комментарий*: `%s`\n", data.Comments)
 		report += fmt.Sprintf("*Лавинный прогноз в альпийской зоне*: `%s`\n", data.AvalancheAlp)
 		report += fmt.Sprintf("*Лавинный прогноз в зоне деревьев*: `%s`\n", data.AvalancheTree)

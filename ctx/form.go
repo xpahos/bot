@@ -5,15 +5,17 @@ import (
 )
 
 const (
-	FormActionMenuText             = "Выберите действие с отчетом: "
-	FormWindBlowingText            = "Ветровой перенос за последние 24 часа"
-	FormWeatherTrendText           = "Общая погодная тенденция"
-	FormHN24Text                   = "Показания доски HN24(цифрами или 0)"
-	FormCommentsText               = "Комментарий в свободной форме"
-	FormAvalancheForecastAlpText   = "Лавинный прогноз в альпийской зоне(1 - не уверен, 5 - уверен): "
-	FormAvalancheForecastTreeText  = "Лавинный прогноз в зоне деревьев(1 - не уверен, 5 - уверен): "
-	FormAvalancheForecastBTreeText = "Лавинный прогноз в зоне ниже деревьев(1 - не уверен, 5 - уверен): "
-	FormCompletedText              = "Отчет завершен"
+	FormActionMenuText               = "Выберите действие с отчетом: "
+	FormWindBlowingText              = "Ветровой перенос за последние 24 часа"
+	FormWeatherTrendText             = "Общая погодная тенденция"
+	FormHN24Text                     = "Показания доски HN24(цифрами или 0)"
+	FormCommentsText                 = "Комментарий в свободной форме"
+	FormAvalancheForecastAlpText     = "Лавинный прогноз в альпийской зоне(1 - не уверен, 5 - уверен): "
+	FormAvalancheForecastTreeText    = "Лавинный прогноз в зоне деревьев(1 - не уверен, 5 - уверен): "
+	FormAvalancheForecastBTreeText   = "Лавинный прогноз в зоне ниже деревьев(1 - не уверен, 5 - уверен): "
+	FormCompletedText                = "Отчет завершен"
+	FormWeatherChangesText           = "Ощутимые изменения(выберите или введите произвольный вариант)"
+	FormWeatherChangesAdditionalText = "Добавить дополнительные изменения?"
 )
 
 type FormStruct struct {
@@ -23,7 +25,6 @@ type FormStruct struct {
 	Hn24           int
 	H2d            int
 	Hst            int
-	WeatherChanges string
 	Comments       string
 	AvalancheAlp   string
 	AvalancheTree  string

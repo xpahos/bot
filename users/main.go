@@ -3,6 +3,7 @@ package users
 import (
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/storage"
+	"github.com/xpahos/bot/helpers"
 
 	"database/sql"
 	"fmt"
@@ -18,14 +19,6 @@ func min(a, b int) int {
 	return b
 }
 
-func ShowNextQuestion(bot *tgbotapi.BotAPI, update *tgbotapi.Update, text string, menu *tgbotapi.ReplyKeyboardMarkup) {
-	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, text)
-	if menu != nil {
-		msg.ReplyMarkup = menu
-	}
-	bot.Send(msg)
-}
-
 func ProcessInlineUserActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
 	logger.Info("UserActionMenu")
 	userName := update.CallbackQuery.From.UserName
@@ -38,7 +31,7 @@ func ProcessInlineUserActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		showMenu = false
 
 		actionStateMap[userName] = ctx.ActionManageUserAdd
-		ShowNextQuestion(bot, update, ctx.UserAddText, nil)
+		helpers.ShowNextQuestionReply(bot, update, ctx.UserAddText, nil)
 	case "DELETE":
 		showMenu = false
 
@@ -57,7 +50,7 @@ func ProcessInlineUserActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		userListMenu := tgbotapi.NewReplyKeyboard(rows...)
 
 		actionStateMap[userName] = ctx.ActionManageUserDelete
-		ShowNextQuestion(bot, update, ctx.UsersDeleteText, &userListMenu)
+		helpers.ShowNextQuestionReply(bot, update, ctx.UsersDeleteText, &userListMenu)
 	}
 
 	msg := tgbotapi.NewEditMessageText(

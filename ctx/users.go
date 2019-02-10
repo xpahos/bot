@@ -4,7 +4,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-var TrustedUsers = map[string]bool{"xpahos": true, "Khalmax": true}
+var TrustedUsers = map[string]bool{"xpahos": true, "Khalmax": true, "snow_niki": true}
 
 const (
 	UsersActionMenuText    = "Выберите действие с пользователем: "

@@ -1,4 +1,4 @@
-package util
+package helpers
 
 import (
 	"github.com/xpahos/bot/storage"

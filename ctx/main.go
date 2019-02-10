@@ -11,30 +11,31 @@ const (
 )
 
 const (
-	ActionNone                             = 0
-	ActionManageUserActionMenu             = 10
-	ActionManageUserAdd                    = 15
-	ActionManageUserDelete                 = 20
-	ActionManageDutyActionMenu             = 25
-	ActionManageDutyAdd                    = 30
-	ActionManageDutyDelete                 = 35
-	ActionManageFormActionMenu             = 40
-	ActionManageFormWindBlowing            = 45
-	ActionManageFormWeatherTrend           = 50
-	ActionManageFormHN24                   = 55
-	ActionManageFormH2D                    = 60
-	ActionManageFormHST                    = 65
-	ActionManageFormWeatherChanges         = 70
-	ActionManageFormProblemMenu            = 75
-	ActionManageFormProblemType            = 80
-	ActionManageFormProblemLocation        = 85
-	ActionManageFormProblemLikelyHood      = 90
-	ActionManageFormProblemSize            = 95
-	ActionManageFormComments               = 100
-	ActionManageFormAvalancheForecastAlp   = 105
-	ActionManageFormAvalancheForecastTree  = 110
-	ActionManageFormAvalancheForecastBTree = 115
-	ActionManageFormDeclineComment         = 120
+	ActionNone                               = 0
+	ActionManageUserActionMenu               = 10
+	ActionManageUserAdd                      = 15
+	ActionManageUserDelete                   = 20
+	ActionManageDutyActionMenu               = 25
+	ActionManageDutyAdd                      = 30
+	ActionManageDutyDelete                   = 35
+	ActionManageFormActionMenu               = 40
+	ActionManageFormWindBlowing              = 45
+	ActionManageFormWeatherTrend             = 50
+	ActionManageFormHN24                     = 55
+	ActionManageFormH2D                      = 60
+	ActionManageFormHST                      = 65
+	ActionManageFormWeatherChanges           = 70
+	ActionManageFormWeatherChangesAdditional = 71
+	ActionManageFormProblemMenu              = 75
+	ActionManageFormProblemType              = 80
+	ActionManageFormProblemLocation          = 85
+	ActionManageFormProblemLikelyHood        = 90
+	ActionManageFormProblemSize              = 95
+	ActionManageFormComments                 = 100
+	ActionManageFormAvalancheForecastAlp     = 105
+	ActionManageFormAvalancheForecastTree    = 110
+	ActionManageFormAvalancheForecastBTree   = 115
+	ActionManageFormDeclineComment           = 120
 )
 
 var YesNoMenu = tgbotapi.NewInlineKeyboardMarkup(

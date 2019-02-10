@@ -3,6 +3,7 @@ package form
 import (
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/storage"
+	"github.com/xpahos/bot/helpers"
 
 	"database/sql"
 	"fmt"
@@ -44,10 +45,10 @@ func ProcessInlineFormProblemMenu(bot *tgbotapi.BotAPI, update *tgbotapi.Update,
 
 	if skipNext {
 		actionStateMap[userName] = ctx.ActionManageFormComments
-		ShowNextQuestion(bot, update, ctx.FormCommentsText, nil)
+		helpers.ShowNextQuestionInline(bot, update, ctx.FormCommentsText, nil)
 	} else {
 		actionStateMap[userName] = ctx.ActionManageFormProblemType
-		ShowNextQuestion(bot, update, ctx.FormProblemTypeText, &ctx.FormProblemType)
+		helpers.ShowNextQuestionInline(bot, update, ctx.FormProblemTypeText, &ctx.FormProblemType)
 	}
 }
 
@@ -84,7 +85,7 @@ func ProcessInlineFormType(bot *tgbotapi.BotAPI, update *tgbotapi.Update, action
 
 	if !showMenu {
 		actionStateMap[userName] = ctx.ActionManageFormProblemLocation
-		ShowNextQuestion(bot, update, ctx.FormProblemLocationText, &ctx.FormProblemLocation)
+		helpers.ShowNextQuestionInline(bot, update, ctx.FormProblemLocationText, &ctx.FormProblemLocation)
 	}
 }
 
@@ -129,7 +130,7 @@ func ProcessInlineFormLocations(bot *tgbotapi.BotAPI, update *tgbotapi.Update, a
 
 	if !showMenu {
 		actionStateMap[userName] = ctx.ActionManageFormProblemLikelyHood
-		ShowNextQuestion(bot, update, ctx.FormProblemLikelyHoodText, &ctx.FormProblemLikelyHood)
+		helpers.ShowNextQuestionInline(bot, update, ctx.FormProblemLikelyHoodText, &ctx.FormProblemLikelyHood)
 	}
 }
 
@@ -166,7 +167,7 @@ func ProcessInlineFormLikelyHood(bot *tgbotapi.BotAPI, update *tgbotapi.Update, 
 
 	if !showMenu {
 		actionStateMap[userName] = ctx.ActionManageFormProblemSize
-		ShowNextQuestion(bot, update, ctx.FormProblemSizeText, &ctx.FormProblemSize)
+		helpers.ShowNextQuestionInline(bot, update, ctx.FormProblemSizeText, &ctx.FormProblemSize)
 	}
 }
 
@@ -204,6 +205,6 @@ func ProcessInlineFormSize(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Up
 		now := time.Now()
 		storage.FormAddProblem(db, &now, &userName, formProblemMap[userName])
 		actionStateMap[userName] = ctx.ActionManageFormProblemMenu
-		ShowNextQuestion(bot, update, ctx.FormProblemMenuText, &ctx.YesNoMenu)
+		helpers.ShowNextQuestionInline(bot, update, ctx.FormProblemMenuText, &ctx.YesNoMenu)
 	}
 }
