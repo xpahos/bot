@@ -16,9 +16,9 @@ import (
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/duty"
 	"github.com/xpahos/bot/form"
+	"github.com/xpahos/bot/helpers"
 	"github.com/xpahos/bot/storage"
 	"github.com/xpahos/bot/users"
-	"github.com/xpahos/bot/helpers"
 )
 
 var logPath = flag.String("log", "bot.log", "Log path")
@@ -120,8 +120,8 @@ func main() {
 				form.ProcessInlineFormWindBlowing(db, bot, &update, actionStateMap)
 			case ctx.ActionManageFormWeatherTrend:
 				form.ProcessInlineFormWeatherTrend(db, bot, &update, actionStateMap)
-            case ctx.ActionManageFormWeatherChangesAdditional:
-                form.ProcessInlineFormWeatherChangesAdditional(bot, &update, actionStateMap)
+			case ctx.ActionManageFormWeatherChangesAdditional:
+				form.ProcessInlineFormWeatherChangesAdditional(bot, &update, actionStateMap)
 			case ctx.ActionManageFormProblemMenu:
 				form.ProcessInlineFormProblemMenu(bot, &update, actionStateMap, formProblemMap)
 			case ctx.ActionManageFormProblemType:
@@ -181,7 +181,7 @@ func main() {
 				}
 			case ctx.ActionManageFormHST:
 				if storage.FormUpdateHST(db, &now, &message) {
-                    msg.Text = ctx.FormWeatherChangesText
+					msg.Text = ctx.FormWeatherChangesText
 					msg.ReplyMarkup = ctx.FormWeatherChanges
 					actionStateMap[userName] = ctx.ActionManageFormWeatherChanges
 				} else {
@@ -230,6 +230,21 @@ func main() {
 				} else {
 					msg.Text = "Не удалось удалить пользователя"
 				}
+				actionStateMap[userName] = ctx.ActionNone
+			case ctx.ActionManageFormArchive:
+				date, err := time.Parse("02 Jan 2006", message)
+
+				if err != nil {
+					msg.Text = "Неверный формат даты"
+				} else {
+					msg.ParseMode = "markdown"
+					if storage.FormIsCompleted(db, &date) {
+						msg.Text = form.GenerateTextReport(db, &date)
+					} else {
+						msg.Text = "Отчет еще не закончен"
+					}
+				}
+
 				actionStateMap[userName] = ctx.ActionNone
 			default:
 				actionStateMap[userName] = ctx.ActionNone
@@ -283,6 +298,24 @@ func main() {
 							actionStateMap[userName] = ctx.ActionNone
 						}
 					}
+				case "archive":
+					after := time.Now().AddDate(0, 0, -16)
+					buttons := []tgbotapi.KeyboardButton{}
+					for i := 0; i < 16; i++ {
+						after = after.AddDate(0, 0, 1)
+						buttons = append(buttons, tgbotapi.NewKeyboardButton(after.Format("02 Jan 2006")))
+					}
+
+					dateListMenu := tgbotapi.NewReplyKeyboard(
+						tgbotapi.NewKeyboardButtonRow(buttons[0:4]...),
+						tgbotapi.NewKeyboardButtonRow(buttons[4:8]...),
+						tgbotapi.NewKeyboardButtonRow(buttons[8:12]...),
+						tgbotapi.NewKeyboardButtonRow(buttons[12:16]...),
+					)
+
+					msg.Text = "Выберите дату или введите в свободной форме"
+					msg.ReplyMarkup = dateListMenu
+					actionStateMap[userName] = ctx.ActionManageFormArchive
 				case "report":
 					msg.ParseMode = "markdown"
 					if storage.FormIsCompleted(db, &now) {
