@@ -124,14 +124,14 @@ func UsersGetList(db *sql.DB) []string {
 }
 
 func UsersGetChatIDList(db *sql.DB) []int64 {
-	userSelect, err := db.Query("SELECT chat_id FROM users")
+	userSelect, err := db.Query("SELECT chat_id FROM users WHERE notifications = true AND chat_id != null")
 	if err != nil {
 		logger.Errorf("Users get error: %v", err)
 		return make([]int64, 0)
 	}
 	defer userSelect.Close()
 
-	var buf *int64
+	var buf int64
 	result := make([]int64, 0, 9)
 	for userSelect.Next() {
 		err = userSelect.Scan(&buf)
@@ -140,10 +140,42 @@ func UsersGetChatIDList(db *sql.DB) []int64 {
 			return make([]int64, 0)
 		}
 
-		if buf != nil {
-			result = append(result, *buf)
-		}
+		result = append(result, buf)
 	}
 
 	return result
+}
+
+func UsersIsOnNotifications(db *sql.DB, user *string) bool {
+	userSelect, err := db.Prepare("SELECT notifications FROM users WHERE username = ?")
+	if err != nil {
+		logger.Errorf("Users notifications get error: %v", err)
+		return false;
+	}
+	defer userSelect.Close()
+
+	ret := false
+	err = userSelect.QueryRow(*user).Scan(&ret)
+	if err != nil {
+		logger.Errorf("Users notifications get error: %v", err)
+		return false;
+	}
+
+	return ret
+}
+
+func UsersUpdateNotifications(db *sql.DB, user *string, flag bool) bool {
+	userChatID, err := db.Prepare("UPDATE users SET notifications = ? WHERE username = ?")
+	if err != nil {
+		logger.Errorf("Users set notifications error: %v", err)
+		return false
+	}
+
+	_, err = userChatID.Exec(flag, *user)
+	if err != nil {
+		logger.Errorf("Users set notifications error: %v", err)
+		return false
+	}
+
+	return true
 }

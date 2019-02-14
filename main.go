@@ -19,6 +19,7 @@ import (
 	"github.com/xpahos/bot/helpers"
 	"github.com/xpahos/bot/storage"
 	"github.com/xpahos/bot/users"
+	"github.com/xpahos/bot/settings"
 )
 
 var logPath = flag.String("log", "bot.log", "Log path")
@@ -146,6 +147,8 @@ func main() {
 				duty.ProcessInlineDutyEdit(db, bot, &update, actionStateMap, true)
 			case ctx.ActionManageDutyDelete:
 				duty.ProcessInlineDutyEdit(db, bot, &update, actionStateMap, false)
+			case ctx.ActionManageSettingsActionMenu:
+				settings.ProcessInlineSettingsMenu(db, bot, &update, actionStateMap)
 			default:
 				logger.Infof("unknown action state index %d", actionStateIdx)
 			}
@@ -331,6 +334,8 @@ func main() {
 					msg.Text = ctx.DutyActionMenuText
 					msg.ReplyMarkup = ctx.DutyActionMenu
 					actionStateMap[userName] = ctx.ActionManageDutyActionMenu
+                case "settings":
+                    settings.PrepareCommandMenu(db, &msg, actionStateMap, &userName)
 				default:
 					msg.Text = "Неизвестная команда"
 				}

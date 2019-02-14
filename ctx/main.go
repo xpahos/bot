@@ -37,6 +37,7 @@ const (
 	ActionManageFormAvalancheForecastBTree   = 115
 	ActionManageFormDeclineComment           = 120
 	ActionManageFormArchive                  = 125
+	ActionManageSettingsActionMenu           = 130
 )
 
 var YesNoMenu = tgbotapi.NewInlineKeyboardMarkup(

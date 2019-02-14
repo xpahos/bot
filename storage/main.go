@@ -9,7 +9,8 @@ import (
 func InitDB(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS users (
         username VARCHAR(255) NOT NULL UNIQUE PRIMARY KEY,
-        chat_id BIGINT
+        chat_id BIGINT,
+        notifications BOOL DEFAULT false
     ) ENGINE=INNODB CHARSET=utf8;`)
 
 	if err != nil {
