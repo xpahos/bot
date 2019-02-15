@@ -116,7 +116,10 @@ func main() {
 			if msgID != -1 {
 				msg.ReplyToMessageID = msgID
 			}
-			bot.Send(msg)
+			_, err := bot.Send(msg)
+			if err != nil {
+				logger.Errorf("failed to send message %+v: %v", msg, err)
+			}
 			continue
 		}
 
@@ -357,6 +360,9 @@ func main() {
 				}
 			}
 		}
-		bot.Send(msg)
+		_, err := bot.Send(msg)
+		if err != nil {
+			logger.Errorf("failed to send message %+v: %v", msg, err)
+		}
 	}
 }
