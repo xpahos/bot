@@ -1,6 +1,7 @@
 package duty
 
 import (
+	"github.com/xpahos/bot/chat"
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/helpers"
 	"github.com/xpahos/bot/storage"
@@ -35,7 +36,7 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, result)
 		msg.ParseMode = "markdown"
-		bot.Send(msg)
+		chat.Send(bot, msg)
 
 		actionStateMap[userName] = ctx.ActionNone
 	} else {
@@ -95,7 +96,7 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		msg.ReplyMarkup = &ctx.DutyActionMenu
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 }
 
 func ProcessInlineDutyEdit(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, add bool) {
@@ -119,14 +120,14 @@ func ProcessInlineDutyEdit(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Up
 			msg.Text = "Произошла ошибка удаления дежурства. Неправильный формат даты или дата уже удалена"
 		}
 	}
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	editMsg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
 		fmt.Sprintf("%v %v", ctx.DutyActionMenuText, message),
 	)
-	bot.Send(editMsg)
+	chat.Send(bot, editMsg)
 
 	actionStateMap[userName] = ctx.ActionNone
 }

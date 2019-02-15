@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
+	"github.com/xpahos/bot/chat"
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/storage"
 	"strconv"
@@ -73,7 +74,7 @@ func ProcessInlineSettingsMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotap
 		} else {
 			msg.Text = "Неудалось включить уведомления"
 		}
-		bot.Send(msg)
+		chat.Send(bot, msg)
 		actionStateMap[username] = ctx.ActionNone
 	case NOTIFY_OFF:
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "")
@@ -82,19 +83,19 @@ func ProcessInlineSettingsMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotap
 		} else {
 			msg.Text = "Неудалось выключить уведомления"
 		}
-		bot.Send(msg)
+		chat.Send(bot, msg)
 		actionStateMap[username] = ctx.ActionNone
 	case TIME_START:
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, ctx.SettingsTimeStartText)
-		bot.Send(msg)
+		chat.Send(bot, msg)
 		actionStateMap[username] = ctx.ActionManageSettingsTimeStart
 	case TIME_END:
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, ctx.SettingsTimeEndText)
-		bot.Send(msg)
+		chat.Send(bot, msg)
 		actionStateMap[username] = ctx.ActionManageSettingsTimeEnd
 	case TIME_ZONE:
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, ctx.SettingsTimeZoneText)
-		bot.Send(msg)
+		chat.Send(bot, msg)
 		actionStateMap[username] = ctx.ActionManageSettingsTimeZone
 	}
 
@@ -104,7 +105,7 @@ func ProcessInlineSettingsMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotap
 		fmt.Sprintf("%v %v", ctx.SettingsActionMenuText, message),
 	)
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 }
 
 func ProcessKeyboardSettingsTime(db *sql.DB, msg *tgbotapi.MessageConfig, update *tgbotapi.Update, actionStateMap map[string]int) {

@@ -1,6 +1,7 @@
 package form
 
 import (
+	"github.com/xpahos/bot/chat"
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/helpers"
 	"github.com/xpahos/bot/storage"
@@ -30,7 +31,7 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 			helpers.ShowNextQuestionInline(bot, update, ctx.FormWindBlowingText, &ctx.FormWindBlowing)
 		} else {
 			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Отчет уже существует")
-			bot.Send(msg)
+			chat.Send(bot, msg)
 			actionStateMap[username] = ctx.ActionNone
 		}
 	case "DELETE":
@@ -42,7 +43,7 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		} else {
 			msg.Text = "Неудалось удалить отчет за сегодня"
 		}
-		bot.Send(msg)
+		chat.Send(bot, msg)
 		actionStateMap[username] = ctx.ActionNone
 	}
 
@@ -56,7 +57,7 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		msg.ReplyMarkup = &ctx.FormActionMenu
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 }
 
 func ProcessInlineFormWindBlowing(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
@@ -81,7 +82,7 @@ func ProcessInlineFormWindBlowing(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbo
 		msg.ReplyMarkup = &ctx.FormWindBlowing
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	if !showMenu {
 		now := time.Now()
@@ -113,7 +114,7 @@ func ProcessInlineFormWeatherTrend(db *sql.DB, bot *tgbotapi.BotAPI, update *tgb
 		msg.ReplyMarkup = &ctx.FormWeatherTrend
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	if !showMenu {
 		now := time.Now()
@@ -134,7 +135,7 @@ func ProcessInlineFormWeatherChangesAdditional(bot *tgbotapi.BotAPI, update *tgb
 		fmt.Sprintf("%v %v", ctx.FormWeatherChangesAdditionalText, message),
 	)
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	switch message {
 	case "Y":
@@ -185,7 +186,7 @@ func ProcessInlineFormAvalanche(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbota
 		msg.ReplyMarkup = &ctx.FormAvalancheForecast
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	if !showMenu {
 		now := time.Now()

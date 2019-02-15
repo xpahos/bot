@@ -1,6 +1,7 @@
 package form
 
 import (
+	"github.com/xpahos/bot/chat"
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/helpers"
 	"github.com/xpahos/bot/storage"
@@ -41,7 +42,7 @@ func ProcessInlineFormProblemMenu(bot *tgbotapi.BotAPI, update *tgbotapi.Update,
 		msg.ReplyMarkup = &ctx.FormProblemType
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	if skipNext {
 		actionStateMap[userName] = ctx.ActionManageFormComments
@@ -81,7 +82,7 @@ func ProcessInlineFormType(bot *tgbotapi.BotAPI, update *tgbotapi.Update, action
 		msg.ReplyMarkup = &ctx.FormProblemType
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	if !showMenu {
 		actionStateMap[userName] = ctx.ActionManageFormProblemLocation
@@ -126,7 +127,7 @@ func ProcessInlineFormLocations(bot *tgbotapi.BotAPI, update *tgbotapi.Update, a
 		msg.ReplyMarkup = &ctx.FormProblemLocation
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	if !showMenu {
 		actionStateMap[userName] = ctx.ActionManageFormProblemLikelyHood
@@ -163,7 +164,7 @@ func ProcessInlineFormLikelyHood(bot *tgbotapi.BotAPI, update *tgbotapi.Update, 
 		msg.ReplyMarkup = &ctx.FormProblemLikelyHood
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	if !showMenu {
 		actionStateMap[userName] = ctx.ActionManageFormProblemSize
@@ -199,7 +200,7 @@ func ProcessInlineFormSize(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Up
 		msg.ReplyMarkup = &ctx.FormProblemSize
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 
 	if !showMenu {
 		now := time.Now()
