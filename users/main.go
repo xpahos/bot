@@ -1,6 +1,7 @@
 package users
 
 import (
+	"github.com/xpahos/bot/chat"
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/helpers"
 	"github.com/xpahos/bot/storage"
@@ -56,5 +57,5 @@ func ProcessInlineUserActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		msg.ReplyMarkup = &ctx.FormActionMenu
 	}
 
-	bot.Send(msg)
+	chat.Send(bot, msg)
 }

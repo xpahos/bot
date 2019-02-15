@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/xpahos/bot/chat"
 	"os"
 	"time"
 
@@ -116,7 +117,7 @@ func main() {
 			if msgID != -1 {
 				msg.ReplyToMessageID = msgID
 			}
-			_, err := bot.Send(msg)
+			chat.Send(bot, msg)
 			if err != nil {
 				logger.Errorf("failed to send message %+v: %v", msg, err)
 			}
@@ -360,9 +361,6 @@ func main() {
 				}
 			}
 		}
-		_, err := bot.Send(msg)
-		if err != nil {
-			logger.Errorf("failed to send message %+v: %v", msg, err)
-		}
+		chat.Send(bot, msg)
 	}
 }

@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/xpahos/bot/chat"
 
 	"github.com/xpahos/bot/ctx"
 
@@ -13,7 +14,7 @@ func NotifyNewReport(notifies <-chan ctx.NotifyNewReportStruct, bot *tgbotapi.Bo
 	for notify := range notifies {
 		logger.Infof("Sending notification about report from %s", notify.Username)
 		msg := tgbotapi.NewMessage(notify.ChatID, fmt.Sprintf("Готов отчет пользователя %s", notify.Username))
-		bot.Send(msg)
+		chat.Send(bot, msg)
 	}
 }
 
@@ -21,7 +22,7 @@ func NotifyNoDuty(notifies <-chan int64, bot *tgbotapi.BotAPI) {
 	for chatID := range notifies {
 		logger.Infof("Sending notification about no duty %d", chatID)
 		msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("Пожалуйста, выберите завтрашнего дежурного"))
-		bot.Send(msg)
+		chat.Send(bot, msg)
 	}
 }
 
@@ -29,6 +30,6 @@ func NotifyNoReport(notifies <-chan int64, bot *tgbotapi.BotAPI) {
 	for chatID := range notifies {
 		logger.Infof("Sending notification about no report %d", chatID)
 		msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("Пожалуйста, заполните форму"))
-		bot.Send(msg)
+		chat.Send(bot, msg)
 	}
 }
