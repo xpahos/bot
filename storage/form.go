@@ -215,12 +215,18 @@ func FormUpdateAvalanche(db *sql.DB, day *time.Time, msg *string, zone int) bool
 	var field string
 
 	switch zone {
-	case ctx.Alp:
+	case ctx.AlpForecast:
 		field = "avalanche_forecast_alp"
-	case ctx.Tree:
+	case ctx.TreeForecast:
 		field = "avalanche_forecast_tree"
-	case ctx.BTree:
+	case ctx.BTreeForecast:
 		field = "avalanche_forecast_btree"
+	case ctx.AlpConfidence:
+		field = "avalanche_confidence_alp"
+	case ctx.TreeConfidence:
+		field = "avalanche_confidence_tree"
+	case ctx.BTreeConfidence:
+		field = "avalanche_confidence_btree"
 	}
 
 	formUpdate, err := db.Prepare("UPDATE form SET " + field + " = ? WHERE date = ?")
@@ -482,7 +488,9 @@ func FormGetOne(db *sql.DB, day *time.Time) (ctx.FormStruct, error) {
 	var form ctx.FormStruct
 
 	formSelect, err := db.Prepare(`SELECT 
-        username, wind_blowing, weather_trend, hn24, h2d, hst, comments, avalanche_forecast_alp, avalanche_forecast_tree, avalanche_forecast_btree
+        username, wind_blowing, weather_trend, hn24, h2d, hst, comments,
+       	avalanche_forecast_alp, avalanche_forecast_tree, avalanche_forecast_btree,
+       	avalanche_confidence_alp, avalanche_confidence_tree, avalanche_confidence_btree
         FROM form WHERE date = ?`)
 	if err != nil {
 		logger.Errorf("Form get error: %v", err)
@@ -490,8 +498,10 @@ func FormGetOne(db *sql.DB, day *time.Time) (ctx.FormStruct, error) {
 	}
 	defer formSelect.Close()
 
-	err = formSelect.QueryRow(day.Format("2006-01-02")).Scan(&form.Username, &form.WindBlowing, &form.WeatherTrend, &form.Hn24, &form.H2d, &form.Hst,
-		&form.Comments, &form.AvalancheAlp, &form.AvalancheTree, &form.AvalancheBTree)
+	err = formSelect.QueryRow(day.Format("2006-01-02")).Scan(&form.Username, &form.WindBlowing,
+		&form.WeatherTrend, &form.Hn24, &form.H2d, &form.Hst, &form.Comments,
+		&form.AvalancheForAlp, &form.AvalancheForTree, &form.AvalancheForBTree,
+		&form.AvalancheConfAlp, &form.AvalancheConfTree, &form.AvalancheConfBTree)
 	if err != nil {
 		logger.Errorf("Form get error: %v", err)
 		return form, err

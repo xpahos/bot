@@ -146,7 +146,7 @@ func ProcessInlineFormWeatherChangesAdditional(bot *tgbotapi.BotAPI, update *tgb
 	}
 }
 
-func ProcessInlineFormAvalancheForecast(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, zone int, notify chan<- ctx.NotifyNewReportStruct) {
+func ProcessInlineFormAvalanche(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, zone int, notify chan<- ctx.NotifyNewReportStruct) {
 	logger.Info("AvalancheForecast")
 	username := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
@@ -161,12 +161,18 @@ func ProcessInlineFormAvalancheForecast(db *sql.DB, bot *tgbotapi.BotAPI, update
 	var text string
 
 	switch zone {
-	case ctx.Alp:
+	case ctx.AlpForecast:
 		text = fmt.Sprintf("%v %v", ctx.FormAvalancheForecastAlpText, message)
-	case ctx.Tree:
+	case ctx.TreeForecast:
 		text = fmt.Sprintf("%v %v", ctx.FormAvalancheForecastTreeText, message)
-	case ctx.BTree:
+	case ctx.BTreeForecast:
 		text = fmt.Sprintf("%v %v", ctx.FormAvalancheForecastBTreeText, message)
+	case ctx.AlpConfidence:
+		text = fmt.Sprintf("%v %v", ctx.FormAvalancheConfidenceAlpText, message)
+	case ctx.TreeConfidence:
+		text = fmt.Sprintf("%v %v", ctx.FormAvalancheConfidenceTreeText, message)
+	case ctx.BTreeConfidence:
+		text = fmt.Sprintf("%v %v", ctx.FormAvalancheConfidenceBTreeText, message)
 	}
 
 	msg := tgbotapi.NewEditMessageText(
@@ -184,20 +190,30 @@ func ProcessInlineFormAvalancheForecast(db *sql.DB, bot *tgbotapi.BotAPI, update
 	if !showMenu {
 		now := time.Now()
 		storage.FormUpdateAvalanche(db, &now, &message, zone)
-		if zone == ctx.Alp {
+		switch zone {
+		case ctx.AlpForecast:
+			actionStateMap[username] = ctx.ActionManageFormAvalancheConfidenceAlp
+			helpers.ShowNextQuestionInline(bot, update, ctx.FormAvalancheConfidenceAlpText, &ctx.FormAvalancheForecast)
+		case ctx.AlpConfidence:
 			actionStateMap[username] = ctx.ActionManageFormAvalancheForecastTree
 			helpers.ShowNextQuestionInline(bot, update, ctx.FormAvalancheForecastTreeText, &ctx.FormAvalancheForecast)
-		} else if zone == ctx.Tree {
+		case ctx.TreeForecast:
+			actionStateMap[username] = ctx.ActionManageFormAvalancheConfidenceTree
+			helpers.ShowNextQuestionInline(bot, update, ctx.FormAvalancheConfidenceTreeText, &ctx.FormAvalancheForecast)
+		case ctx.TreeConfidence:
 			actionStateMap[username] = ctx.ActionManageFormAvalancheForecastBTree
 			helpers.ShowNextQuestionInline(bot, update, ctx.FormAvalancheForecastBTreeText, &ctx.FormAvalancheForecast)
-		} else if zone == ctx.BTree {
+		case ctx.BTreeForecast:
+			actionStateMap[username] = ctx.ActionManageFormAvalancheConfidenceBTree
+			helpers.ShowNextQuestionInline(bot, update, ctx.FormAvalancheConfidenceBTreeText, &ctx.FormAvalancheForecast)
+		case ctx.BTreeConfidence:
 			storage.FormComplete(db, &now)
-			helpers.ShowNextQuestionInline(bot, update, ctx.FormCompletedText, nil)
 			if notify != nil {
 				for _, chatID := range storage.UsersGetChatIDList(db) {
 					notify <- ctx.NotifyNewReportStruct{username, chatID}
 				}
 			}
+			helpers.ShowNextQuestionInline(bot, update, ctx.FormCompletedText, nil)
 			actionStateMap[username] = ctx.ActionNone
 		}
 	}

@@ -5,9 +5,12 @@ import (
 )
 
 const (
-	Alp   = 0
-	Tree  = 1
-	BTree = 2
+	AlpForecast   = 0
+	TreeForecast  = 1
+	BTreeForecast = 2
+	AlpConfidence = 3
+	TreeConfidence = 4
+	BTreeConfidence = 5
 )
 
 const (
@@ -33,8 +36,11 @@ const (
 	ActionManageFormProblemSize              = 95
 	ActionManageFormComments                 = 100
 	ActionManageFormAvalancheForecastAlp     = 105
+	ActionManageFormAvalancheConfidenceAlp   = 106
 	ActionManageFormAvalancheForecastTree    = 110
+	ActionManageFormAvalancheConfidenceTree  = 111
 	ActionManageFormAvalancheForecastBTree   = 115
+	ActionManageFormAvalancheConfidenceBTree = 116
 	ActionManageFormDeclineComment           = 120
 	ActionManageFormArchive                  = 125
 	ActionManageSettingsActionMenu           = 130

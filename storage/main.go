@@ -41,9 +41,12 @@ func InitDB(db *sql.DB) error {
         h2d INT,
         hst INT,
         comments TEXT,
-        avalanche_forecast_alp ENUM('1', '2', '3', '4', '5'),
+        avalanche_forecast_alp ENUM('1', '2', '3', '4', '5'), 
         avalanche_forecast_tree ENUM('1', '2', '3', '4', '5'),
-        avalanche_forecast_btree ENUM('1', '2', '3', '4', '5')
+        avalanche_forecast_btree ENUM('1', '2', '3', '4', '5'),
+        avalanche_confidence_alp ENUM('1', '2', '3', '4', '5'),
+        avalanche_confidence_tree ENUM('1', '2', '3', '4', '5'),
+        avalanche_confidence_btree ENUM('1', '2', '3', '4', '5')
     ) ENGINE=INNODB CHARSET=utf8;`)
 
 	if err != nil {
