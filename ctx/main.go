@@ -1,15 +1,15 @@
 package ctx
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 const (
-	AlpForecast   = 0
-	TreeForecast  = 1
-	BTreeForecast = 2
-	AlpConfidence = 3
-	TreeConfidence = 4
+	AlpForecast     = 0
+	TreeForecast    = 1
+	BTreeForecast   = 2
+	AlpConfidence   = 3
+	TreeConfidence  = 4
 	BTreeConfidence = 5
 )
 

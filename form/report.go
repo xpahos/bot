@@ -5,7 +5,6 @@ import (
 	"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/helpers"
 
-	//"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/storage"
 
 	"database/sql"
@@ -16,9 +15,10 @@ import (
 )
 
 func PrepareCommandArchive(db *sql.DB, msg *tgbotapi.MessageConfig, action map[string]int, username *string) {
-	buttons := []tgbotapi.KeyboardButton{}
+	dateStrings := storage.FormGetDatesList(db, 16)
+	buttons := make([]tgbotapi.KeyboardButton, 0, len(dateStrings))
 
-	for _, dateStr := range storage.FormGetDatesList(db, 16) {
+	for _, dateStr := range dateStrings {
 		date, err := time.Parse("2006-01-02", dateStr)
 		if err != nil {
 			continue
@@ -26,8 +26,8 @@ func PrepareCommandArchive(db *sql.DB, msg *tgbotapi.MessageConfig, action map[s
 		buttons = append(buttons, tgbotapi.NewKeyboardButton(date.Format("02 Jan 2006")))
 	}
 
-	rows := [][]tgbotapi.KeyboardButton{}
 	buttonLen := len(buttons)
+	rows := make([][]tgbotapi.KeyboardButton, 0, 1+buttonLen/4)
 	for i := 0; i < buttonLen; i = i + 4 {
 		end := helpers.Min(i+4, buttonLen)
 		rows = append(rows, tgbotapi.NewKeyboardButtonRow(buttons[i:end]...))
