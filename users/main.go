@@ -12,13 +12,6 @@ import (
 	"github.com/google/logger"
 )
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func ProcessInlineUserActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
 	logger.Info("UserActionMenu")
 	userName := update.CallbackQuery.From.UserName
@@ -44,7 +37,7 @@ func ProcessInlineUserActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		rows := [][]tgbotapi.KeyboardButton{}
 		buttonLen := len(buttons)
 		for i := 0; i < buttonLen; i = i + 4 {
-			end := min(i+4, buttonLen)
+			end := helpers.Min(i+4, buttonLen)
 			rows = append(rows, tgbotapi.NewKeyboardButtonRow(buttons[i:end]...))
 		}
 		userListMenu := tgbotapi.NewReplyKeyboard(rows...)

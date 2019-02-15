@@ -143,11 +143,17 @@ func main() {
 			case ctx.ActionManageFormProblemSize:
 				form.ProcessInlineFormSize(db, bot, &update, actionStateMap, formProblemMap)
 			case ctx.ActionManageFormAvalancheForecastAlp:
-				form.ProcessInlineFormAvalancheForecast(db, bot, &update, actionStateMap, ctx.Alp, nil)
+				form.ProcessInlineFormAvalanche(db, bot, &update, actionStateMap, ctx.AlpForecast, nil)
 			case ctx.ActionManageFormAvalancheForecastTree:
-				form.ProcessInlineFormAvalancheForecast(db, bot, &update, actionStateMap, ctx.Tree, nil)
+				form.ProcessInlineFormAvalanche(db, bot, &update, actionStateMap, ctx.TreeForecast, nil)
 			case ctx.ActionManageFormAvalancheForecastBTree:
-				form.ProcessInlineFormAvalancheForecast(db, bot, &update, actionStateMap, ctx.BTree, notifyReport)
+				form.ProcessInlineFormAvalanche(db, bot, &update, actionStateMap, ctx.BTreeForecast, nil)
+			case ctx.ActionManageFormAvalancheConfidenceAlp:
+				form.ProcessInlineFormAvalanche(db, bot, &update, actionStateMap, ctx.AlpConfidence, nil)
+			case ctx.ActionManageFormAvalancheConfidenceTree:
+				form.ProcessInlineFormAvalanche(db, bot, &update, actionStateMap, ctx.TreeConfidence, nil)
+			case ctx.ActionManageFormAvalancheConfidenceBTree:
+				form.ProcessInlineFormAvalanche(db, bot, &update, actionStateMap, ctx.BTreeConfidence, notifyReport)
 			case ctx.ActionManageUserActionMenu:
 				users.ProcessInlineUserActionMenu(db, bot, &update, actionStateMap)
 			case ctx.ActionManageDutyActionMenu:
@@ -278,7 +284,7 @@ func main() {
 					msg.Text = ctx.HelpText
 				case "form":
 					duty, err := storage.DutyGetOne(db, &now)
-					if err == nil {
+					if err != nil {
 						msg.Text = "Не выбран дежурный"
 						actionStateMap[username] = ctx.ActionNone
 					} else {
@@ -293,7 +299,7 @@ func main() {
 					}
 				case "confirm":
 					duty, err := storage.DutyGetOne(db, &now)
-					if err == nil {
+					if err != nil {
 						msg.Text = "Не выбран дежурный"
 					} else {
 						if duty == username {
@@ -310,7 +316,7 @@ func main() {
 					actionStateMap[username] = ctx.ActionNone
 				case "decline":
 					duty, err := storage.DutyGetOne(db, &now)
-					if err == nil {
+					if err != nil {
 						msg.Text = "Не выбран дежурный"
 						actionStateMap[username] = ctx.ActionNone
 					} else {
