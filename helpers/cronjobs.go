@@ -59,7 +59,7 @@ func cronJobRoundTime() {
 	sleepTime := (60-now.Second())*60 + (60 - now.Minute())
 
 	// Sleep only if current minutes less then 10
-	if sleepTime < 50*60 {
+	if sleepTime > 50*60 {
 		time.Sleep(time.Duration(sleepTime) * time.Second)
 	}
 }
