@@ -14,6 +14,14 @@ const (
 	UsersDeleteConfirmText = "Пользователь удален"
 )
 
+type UsersNotificationDurationStruct struct {
+	Username  string
+	ChatID    int64
+	TimeStart int
+	TimeEnd   int
+	TimeZone  int
+}
+
 var UsersActionMenu = tgbotapi.NewInlineKeyboardMarkup(
 	[]tgbotapi.InlineKeyboardButton{
 		tgbotapi.NewInlineKeyboardButtonData("Добавить", "ADD"),

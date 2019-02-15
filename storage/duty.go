@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"github.com/xpahos/bot/ctx"
 
 	"database/sql"
@@ -78,11 +79,11 @@ func DutyDeleteOne(db *sql.DB, dateString *string) bool {
 	return true
 }
 
-func DutyGetOne(db *sql.DB, day *time.Time) string {
+func DutyGetOne(db *sql.DB, day *time.Time) (string, error) {
 	dutySelect, err := db.Prepare("SELECT username FROM duty WHERE date = ?")
 	if err != nil {
 		logger.Errorf("Duties get error: %v", err)
-		return "Empty"
+		return "Empty", errors.New("Empty")
 	}
 	defer dutySelect.Close()
 
@@ -90,8 +91,8 @@ func DutyGetOne(db *sql.DB, day *time.Time) string {
 	err = dutySelect.QueryRow(day.Format("2006-01-02")).Scan(&result)
 	if err != nil {
 		logger.Errorf("Duties get error: %v", err)
-		return "Empty"
+		return "Empty", errors.New("Empty")
 	}
 
-	return result
+	return result, nil
 }

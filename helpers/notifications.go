@@ -1,21 +1,34 @@
 package helpers
 
 import (
-	"github.com/xpahos/bot/storage"
-
-	"database/sql"
 	"fmt"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/xpahos/bot/ctx"
+
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
 )
 
-func NotifyNewReport(username <-chan string, bot *tgbotapi.BotAPI, db *sql.DB) {
-	for userName := range username {
-		logger.Infof("Sending notification about report from %s", userName)
-		for _, chatID := range storage.UsersGetChatIDList(db) {
-			msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("Готов отчет пользователя %s", userName))
-			bot.Send(msg)
-		}
+func NotifyNewReport(notifies <-chan ctx.NotifyNewReportStruct, bot *tgbotapi.BotAPI) {
+	for notify := range notifies {
+		logger.Infof("Sending notification about report from %s", notify.Username)
+		msg := tgbotapi.NewMessage(notify.ChatID, fmt.Sprintf("Готов отчет пользователя %s", notify.Username))
+		bot.Send(msg)
+	}
+}
+
+func NotifyNoDuty(notifies <-chan int64, bot *tgbotapi.BotAPI) {
+	for chatID := range notifies {
+		logger.Infof("Sending notification about no duty %d", chatID)
+		msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("Пожалуйста, выберите завтрашнего дежурного"))
+		bot.Send(msg)
+	}
+}
+
+func NotifyNoReport(notifies <-chan int64, bot *tgbotapi.BotAPI) {
+	for chatID := range notifies {
+		logger.Infof("Sending notification about no report %d", chatID)
+		msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("Пожалуйста, заполните форму"))
+		bot.Send(msg)
 	}
 }

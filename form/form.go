@@ -2,8 +2,8 @@ package form
 
 import (
 	"github.com/xpahos/bot/ctx"
-	"github.com/xpahos/bot/storage"
 	"github.com/xpahos/bot/helpers"
+	"github.com/xpahos/bot/storage"
 
 	"database/sql"
 	"fmt"
@@ -15,7 +15,7 @@ import (
 
 func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
 	logger.Info("Action")
-	userName := update.CallbackQuery.From.UserName
+	username := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 	now := time.Now()
 
@@ -25,25 +25,25 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 	case "ADD":
 		showMenu = false
 
-		if storage.FormInitRecord(db, &now, &userName) {
-			actionStateMap[userName] = ctx.ActionManageFormWindBlowing
+		if storage.FormInitRecord(db, &now, &username) {
+			actionStateMap[username] = ctx.ActionManageFormWindBlowing
 			helpers.ShowNextQuestionInline(bot, update, ctx.FormWindBlowingText, &ctx.FormWindBlowing)
 		} else {
 			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Отчет уже существует")
 			bot.Send(msg)
-			actionStateMap[userName] = ctx.ActionNone
+			actionStateMap[username] = ctx.ActionNone
 		}
 	case "DELETE":
 		showMenu = false
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "")
 		if storage.FormDeleteRecord(db, &now) {
 			msg.Text = "Отчет за сегодняшний день удален"
-			logger.Infof("User %s deleted report for %s", userName, now.Format("02 Jan 2006"))
+			logger.Infof("User %s deleted report for %s", username, now.Format("02 Jan 2006"))
 		} else {
 			msg.Text = "Неудалось удалить отчет за сегодня"
 		}
 		bot.Send(msg)
-		actionStateMap[userName] = ctx.ActionNone
+		actionStateMap[username] = ctx.ActionNone
 	}
 
 	msg := tgbotapi.NewEditMessageText(
@@ -61,7 +61,7 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 
 func ProcessInlineFormWindBlowing(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
 	logger.Info("WindBlowing")
-	userName := update.CallbackQuery.From.UserName
+	username := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
 	showMenu := true
@@ -86,14 +86,14 @@ func ProcessInlineFormWindBlowing(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbo
 	if !showMenu {
 		now := time.Now()
 		storage.FormUpdateWindBlowing(db, &now, &message)
-		actionStateMap[userName] = ctx.ActionManageFormWeatherTrend
+		actionStateMap[username] = ctx.ActionManageFormWeatherTrend
 		helpers.ShowNextQuestionInline(bot, update, ctx.FormWeatherTrendText, &ctx.FormWeatherTrend)
 	}
 }
 
 func ProcessInlineFormWeatherTrend(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
 	logger.Info("WeatherTrend")
-	userName := update.CallbackQuery.From.UserName
+	username := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
 	showMenu := true
@@ -118,14 +118,14 @@ func ProcessInlineFormWeatherTrend(db *sql.DB, bot *tgbotapi.BotAPI, update *tgb
 	if !showMenu {
 		now := time.Now()
 		storage.FormUpdateWeatherTrend(db, &now, &message)
-		actionStateMap[userName] = ctx.ActionManageFormHN24
+		actionStateMap[username] = ctx.ActionManageFormHN24
 		helpers.ShowNextQuestionInline(bot, update, ctx.FormHN24Text, nil)
 	}
 }
 
 func ProcessInlineFormWeatherChangesAdditional(bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
-    logger.Info("WeatherChangesAdditional")
-	userName := update.CallbackQuery.From.UserName
+	logger.Info("WeatherChangesAdditional")
+	username := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
 	msg := tgbotapi.NewEditMessageText(
@@ -136,19 +136,19 @@ func ProcessInlineFormWeatherChangesAdditional(bot *tgbotapi.BotAPI, update *tgb
 
 	bot.Send(msg)
 
-    switch message {
-        case "Y":
-		    actionStateMap[userName] = ctx.ActionManageFormWeatherChanges
-            helpers.ShowNextQuestionReply(bot, update, ctx.FormWeatherChangesText, &ctx.FormWeatherChanges)
-        default:
-		    actionStateMap[userName] = ctx.ActionManageFormProblemMenu
-            helpers.ShowNextQuestionInline(bot, update, ctx.FormProblemMenuText, &ctx.YesNoMenu)
-    }
+	switch message {
+	case "Y":
+		actionStateMap[username] = ctx.ActionManageFormWeatherChanges
+		helpers.ShowNextQuestionReply(bot, update, ctx.FormWeatherChangesText, &ctx.FormWeatherChanges)
+	default:
+		actionStateMap[username] = ctx.ActionManageFormProblemMenu
+		helpers.ShowNextQuestionInline(bot, update, ctx.FormProblemMenuText, &ctx.YesNoMenu)
+	}
 }
 
-func ProcessInlineFormAvalancheForecast(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, zone int, notify chan<- string) {
+func ProcessInlineFormAvalancheForecast(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, zone int, notify chan<- ctx.NotifyNewReportStruct) {
 	logger.Info("AvalancheForecast")
-	userName := update.CallbackQuery.From.UserName
+	username := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
 	showMenu := true
@@ -185,18 +185,20 @@ func ProcessInlineFormAvalancheForecast(db *sql.DB, bot *tgbotapi.BotAPI, update
 		now := time.Now()
 		storage.FormUpdateAvalanche(db, &now, &message, zone)
 		if zone == ctx.Alp {
-			actionStateMap[userName] = ctx.ActionManageFormAvalancheForecastTree
+			actionStateMap[username] = ctx.ActionManageFormAvalancheForecastTree
 			helpers.ShowNextQuestionInline(bot, update, ctx.FormAvalancheForecastTreeText, &ctx.FormAvalancheForecast)
 		} else if zone == ctx.Tree {
-			actionStateMap[userName] = ctx.ActionManageFormAvalancheForecastBTree
+			actionStateMap[username] = ctx.ActionManageFormAvalancheForecastBTree
 			helpers.ShowNextQuestionInline(bot, update, ctx.FormAvalancheForecastBTreeText, &ctx.FormAvalancheForecast)
 		} else if zone == ctx.BTree {
 			storage.FormComplete(db, &now)
 			helpers.ShowNextQuestionInline(bot, update, ctx.FormCompletedText, nil)
 			if notify != nil {
-				notify <- userName
+				for _, chatID := range storage.UsersGetChatIDList(db) {
+					notify <- ctx.NotifyNewReportStruct{username, chatID}
+				}
 			}
-			actionStateMap[userName] = ctx.ActionNone
+			actionStateMap[username] = ctx.ActionNone
 		}
 	}
 }
