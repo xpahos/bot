@@ -9,7 +9,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
 )
 
@@ -30,13 +30,13 @@ func ProcessInlineUserActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		showMenu = false
 
 		users := storage.UsersGetList(db)
-		buttons := []tgbotapi.KeyboardButton{}
-		for _, user := range users {
-			buttons = append(buttons, tgbotapi.NewKeyboardButton(user))
+		buttons := make([]tgbotapi.KeyboardButton, len(users))
+		for i, user := range users {
+			buttons[i] = tgbotapi.NewKeyboardButton(user)
 		}
 
-		rows := [][]tgbotapi.KeyboardButton{}
 		buttonLen := len(buttons)
+		rows := make([][]tgbotapi.KeyboardButton, 0, 1+buttonLen/4)
 		for i := 0; i < buttonLen; i = i + 4 {
 			end := helpers.Min(i+4, buttonLen)
 			rows = append(rows, tgbotapi.NewKeyboardButtonRow(buttons[i:end]...))

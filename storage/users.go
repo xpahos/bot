@@ -6,7 +6,7 @@ import (
 
 	"github.com/xpahos/bot/ctx"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
 )
 
@@ -199,13 +199,13 @@ func UsersUpdateNotificationsTime(db *sql.DB, user *string, val int, flag int) b
 
 	query, err := db.Prepare("UPDATE users SET " + field + " = ? WHERE username = ?")
 	if err != nil {
-		logger.Errorf("Users set %s field rror: %s", field, err)
+		logger.Errorf("Users set %s field error: %s", field, err)
 		return false
 	}
 
 	_, err = query.Exec(val, *user)
 	if err != nil {
-		logger.Errorf("Users set %s field rror: %s", field, err)
+		logger.Errorf("Users set %s field error: %s", field, err)
 		return false
 	}
 

@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/xpahos/bot/chat"
 )
 

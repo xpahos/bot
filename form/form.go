@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
 )
 
@@ -211,7 +211,7 @@ func ProcessInlineFormAvalanche(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbota
 			storage.FormComplete(db, &now)
 			if notify != nil {
 				for _, chatID := range storage.UsersGetChatIDList(db) {
-					notify <- ctx.NotifyNewReportStruct{username, chatID}
+					notify <- ctx.NotifyNewReportStruct{Username: username, ChatID: chatID}
 				}
 			}
 			helpers.ShowNextQuestionInline(bot, update, ctx.FormCompletedText, nil)

@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/google/logger"
 )
 
@@ -49,8 +49,8 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		}
 
 		after := time.Now()
-		buttons := []tgbotapi.InlineKeyboardButton{}
-		for i := 0; i < 16; i++ {
+		buttons := make([]tgbotapi.InlineKeyboardButton, 16)
+		for i := range buttons {
 			after = after.AddDate(0, 0, 1)
 
 			var userString string
@@ -62,7 +62,7 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 				userString = after.Format("02 Jan 2006")
 			}
 
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardButtonData(userString, dbString))
+			buttons[i] = tgbotapi.NewInlineKeyboardButtonData(userString, dbString)
 		}
 
 		dateListMenu := tgbotapi.NewInlineKeyboardMarkup(
