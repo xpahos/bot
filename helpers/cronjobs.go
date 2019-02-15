@@ -35,11 +35,14 @@ func CronJobCheckReport(notifies chan<- int64, db *sql.DB) {
 		if err == nil {
 			user, err := storage.UsersGetOneNotifiable(db, &username)
 
-			if err == nil {
-				notifies <- user.ChatID
-				logger.Infof("Report notification was scheduled to send to %s", user.Username)
+			if err != nil {
+				logger.Errorf("Report notification was not sent because user %s turned off notifications", username)
 			} else {
-				logger.Errorf("Report notification was not sent becase user %s turned off notifications", username)
+				now := time.Now().UTC().Add(time.Duration(user.TimeZone) * time.Hour)
+				if now.Hour() >= user.TimeStart && now.Hour() < user.TimeEnd {
+					notifies <- user.ChatID
+					logger.Infof("Report notification was scheduled to send to %s", user.Username)
+				}
 			}
 		} else {
 			logger.Errorf("Report notification was not sent because of no duty")
