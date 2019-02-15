@@ -27,9 +27,7 @@ func PrepareCommandArchive(db *sql.DB, msg *tgbotapi.MessageConfig, action map[s
 		}
 		buttons[idx % 4] = append(buttons[idx % 4], tgbotapi.NewKeyboardButton(date.Format("02 Jan 2006")))
 	}
-
-	logger.Errorf("%v", buttons)
-
+	
 	menu := tgbotapi.NewReplyKeyboard(buttons...)
 
 	msg.Text = "Выберите дату или введите в свободной форме"
