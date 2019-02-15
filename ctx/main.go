@@ -38,7 +38,15 @@ const (
 	ActionManageFormDeclineComment           = 120
 	ActionManageFormArchive                  = 125
 	ActionManageSettingsActionMenu           = 130
+	ActionManageSettingsTimeStart            = 135
+	ActionManageSettingsTimeEnd              = 140
+	ActionManageSettingsTimeZone             = 145
 )
+
+type NotifyNewReportStruct struct {
+	Username string
+	ChatID   int64
+}
 
 var YesNoMenu = tgbotapi.NewInlineKeyboardMarkup(
 	[]tgbotapi.InlineKeyboardButton{

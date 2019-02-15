@@ -19,10 +19,10 @@ func GenerateTextReport(db *sql.DB, day *time.Time) string {
 	if err != nil {
 		report += "Ошибка получения данных"
 	} else {
-        var changes string
-        for _, change := range storage.FormGetWeatherChangesList(db, day) {
-            changes += change + " "
-        }
+		var changes string
+		for _, change := range storage.FormGetWeatherChangesList(db, day) {
+			changes += change + " "
+		}
 
 		report += fmt.Sprintf("*Отчет подготовил*: `%s`\n", data.Username)
 		report += fmt.Sprintf("*Ветровой перенос за 24 часа*: `%s`\n", data.WindBlowing)

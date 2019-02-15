@@ -2,8 +2,8 @@ package duty
 
 import (
 	"github.com/xpahos/bot/ctx"
-	"github.com/xpahos/bot/storage"
 	"github.com/xpahos/bot/helpers"
+	"github.com/xpahos/bot/storage"
 
 	"database/sql"
 	"fmt"

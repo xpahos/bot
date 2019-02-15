@@ -10,7 +10,10 @@ func InitDB(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS users (
         username VARCHAR(255) NOT NULL UNIQUE PRIMARY KEY,
         chat_id BIGINT,
-        notifications BOOL DEFAULT false
+        notifications BOOL DEFAULT false,
+        time_start INT DEFAULT 7,
+        time_end INT DEFAULT 22,
+        time_zone INT DEFAULT 3
     ) ENGINE=INNODB CHARSET=utf8;`)
 
 	if err != nil {

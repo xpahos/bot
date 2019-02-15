@@ -67,7 +67,6 @@ func FormDeleteRecord(db *sql.DB, day *time.Time) bool {
 		return false
 	}
 
-
 	return true
 }
 
@@ -403,7 +402,7 @@ func FormGetWeatherChangesList(db *sql.DB, day *time.Time) []string {
 	for rows.Next() {
 		err = rows.Scan(&buf)
 		if err != nil {
-		    logger.Errorf("Form get weather changes error: %v", err)
+			logger.Errorf("Form get weather changes error: %v", err)
 			return nil
 		}
 
@@ -477,7 +476,7 @@ func FormGetStatusList(db *sql.DB, day *time.Time, confirm bool) []ctx.FormStatu
 	defer rows.Close()
 
 	var buf ctx.FormStatusStruct
-    var comment sql.NullString
+	var comment sql.NullString
 	result := make([]ctx.FormStatusStruct, 0, 14)
 	for rows.Next() {
 		err = rows.Scan(&buf.Username, &comment)
@@ -486,9 +485,9 @@ func FormGetStatusList(db *sql.DB, day *time.Time, confirm bool) []ctx.FormStatu
 			return nil
 		}
 
-        if comment.Valid {
-            buf.Comment = comment.String
-        }
+		if comment.Valid {
+			buf.Comment = comment.String
+		}
 
 		result = append(result, buf)
 	}

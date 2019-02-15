@@ -17,9 +17,9 @@ import (
 	"github.com/xpahos/bot/duty"
 	"github.com/xpahos/bot/form"
 	"github.com/xpahos/bot/helpers"
+	"github.com/xpahos/bot/settings"
 	"github.com/xpahos/bot/storage"
 	"github.com/xpahos/bot/users"
-	"github.com/xpahos/bot/settings"
 )
 
 var logPath = flag.String("log", "bot.log", "Log path")
@@ -68,8 +68,17 @@ func main() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 1
 
-	notifyReport := make(chan string, 1)
-	go helpers.NotifyNewReport(notifyReport, bot, db)
+	// Run all goroutines for notifications
+	notifyReport := make(chan ctx.NotifyNewReportStruct, 1)
+	notifyNoDuty := make(chan int64, 1)
+	notifyNoReport := make(chan int64, 1)
+	go helpers.NotifyNewReport(notifyReport, bot)
+	go helpers.NotifyNoDuty(notifyNoDuty, bot)
+	go helpers.NotifyNoReport(notifyNoReport, bot)
+
+	// Run all cronjobs
+	go helpers.CronJobCheckDuty(notifyNoDuty, db)
+	go helpers.CronJobCheckReport(notifyNoReport, db)
 
 	var (
 		actionStateMap    = make(map[string]int)
@@ -88,21 +97,21 @@ func main() {
 		}
 
 		var (
-			userName string
+			username string
 			chatID   int64
 			msgID    int
 		)
 		if update.CallbackQuery != nil {
-			userName = update.CallbackQuery.From.UserName
+			username = update.CallbackQuery.From.UserName
 			chatID = update.CallbackQuery.Message.Chat.ID
 			msgID = -1
 		} else if update.Message != nil {
-			userName = update.Message.From.UserName
+			username = update.Message.From.UserName
 			chatID = update.Message.Chat.ID
 			msgID = update.Message.MessageID
 		}
 
-		if !trustedUsersCache[userName] && !storage.UsersCheckTrusted(db, trustedUsersCache, &update) {
+		if !trustedUsersCache[username] && !storage.UsersCheckTrusted(db, trustedUsersCache, &update) {
 			msg := tgbotapi.NewMessage(chatID, "Вы не авторизованы для выполнения этой операции")
 			if msgID != -1 {
 				msg.ReplyToMessageID = msgID
@@ -112,8 +121,8 @@ func main() {
 		}
 
 		if update.CallbackQuery != nil {
-			actionStateIdx := actionStateMap[userName]
-			logger.Infof("Inline: %s %s %d", update.CallbackQuery.Data, userName, actionStateIdx)
+			actionStateIdx := actionStateMap[username]
+			logger.Infof("Inline: %s %s %d", update.CallbackQuery.Data, username, actionStateIdx)
 			switch actionStateIdx {
 			case ctx.ActionManageFormActionMenu:
 				form.ProcessInlineFormActionMenu(db, bot, &update, actionStateMap)
@@ -163,77 +172,77 @@ func main() {
 		//msg.ReplyToMessageID = update.Message.MessageID
 		msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
-		logger.Infof("[%s] %s %v", userName, message, update.Message.IsCommand())
+		logger.Infof("[%s] %s %v", username, message, update.Message.IsCommand())
 		if !update.Message.IsCommand() {
-			switch actionStateMap[userName] {
+			switch actionStateMap[username] {
 			case ctx.ActionManageFormHN24:
 				if storage.FormUpdateHN24(db, &now, &message) {
 					msg.Text = "Показания доски H2D(цифрами или 0)"
-					actionStateMap[userName] = ctx.ActionManageFormH2D
+					actionStateMap[username] = ctx.ActionManageFormH2D
 				} else {
 					msg.Text = ctx.FormHN24Text
-					actionStateMap[userName] = ctx.ActionManageFormHN24
+					actionStateMap[username] = ctx.ActionManageFormHN24
 				}
 			case ctx.ActionManageFormH2D:
 				if storage.FormUpdateH2D(db, &now, &message) {
 					msg.Text = "Показания доски HST(цифрами или 0)"
-					actionStateMap[userName] = ctx.ActionManageFormHST
+					actionStateMap[username] = ctx.ActionManageFormHST
 				} else {
 					msg.Text = "Показания доски H2D(цифрами или 0)"
-					actionStateMap[userName] = ctx.ActionManageFormH2D
+					actionStateMap[username] = ctx.ActionManageFormH2D
 				}
 			case ctx.ActionManageFormHST:
 				if storage.FormUpdateHST(db, &now, &message) {
 					msg.Text = ctx.FormWeatherChangesText
 					msg.ReplyMarkup = ctx.FormWeatherChanges
-					actionStateMap[userName] = ctx.ActionManageFormWeatherChanges
+					actionStateMap[username] = ctx.ActionManageFormWeatherChanges
 				} else {
 					msg.Text = "Показания доски HST(цифрами или 0)"
-					actionStateMap[userName] = ctx.ActionManageFormHST
+					actionStateMap[username] = ctx.ActionManageFormHST
 				}
 			case ctx.ActionManageFormWeatherChanges:
-				if storage.FormUpdateWeatherChanges(db, &now, &userName, &message) {
+				if storage.FormUpdateWeatherChanges(db, &now, &username, &message) {
 					msg.Text = ctx.FormWeatherChangesAdditionalText
 					msg.ReplyMarkup = ctx.YesNoMenu
-					actionStateMap[userName] = ctx.ActionManageFormWeatherChangesAdditional
+					actionStateMap[username] = ctx.ActionManageFormWeatherChangesAdditional
 				} else {
 					msg.Text = ctx.FormWeatherChangesText
 					msg.ReplyMarkup = ctx.FormWeatherChanges
-					actionStateMap[userName] = ctx.ActionManageFormWeatherChanges
+					actionStateMap[username] = ctx.ActionManageFormWeatherChanges
 				}
 			case ctx.ActionManageFormComments:
 				if storage.FormUpdateComments(db, &now, &message) {
 					msg.Text = ctx.FormAvalancheForecastAlpText
 					msg.ReplyMarkup = ctx.FormAvalancheForecast
-					actionStateMap[userName] = ctx.ActionManageFormAvalancheForecastAlp
+					actionStateMap[username] = ctx.ActionManageFormAvalancheForecastAlp
 				} else {
 					msg.Text = ctx.FormCommentsText
-					actionStateMap[userName] = ctx.ActionManageFormComments
+					actionStateMap[username] = ctx.ActionManageFormComments
 				}
 			case ctx.ActionManageFormDeclineComment:
-				if storage.FormDecline(db, &now, &userName, &message) {
+				if storage.FormDecline(db, &now, &username, &message) {
 					msg.Text = "Комментарий добавлен"
-					actionStateMap[userName] = ctx.ActionNone
+					actionStateMap[username] = ctx.ActionNone
 				} else {
 					msg.Text = "Неудалось внести данные"
-					actionStateMap[userName] = ctx.ActionNone
+					actionStateMap[username] = ctx.ActionNone
 				}
 			case ctx.ActionManageUserAdd:
 				if storage.UsersAddOne(db, &message) {
 					msg.Text = "Пользователь добавлен"
-					logger.Infof("User %s added user %s", userName, message)
+					logger.Infof("User %s added user %s", username, message)
 				} else {
 					msg.Text = "Пользователь уже существует или его имя длинее 255 символов"
 				}
-				actionStateMap[userName] = ctx.ActionNone
+				actionStateMap[username] = ctx.ActionNone
 			case ctx.ActionManageUserDelete:
 				if storage.UsersDeleteOne(db, &message) {
 					msg.Text = "Пользователь удален"
-					logger.Infof("User %s deleted user %s", userName, message)
+					logger.Infof("User %s deleted user %s", username, message)
 				} else {
 					msg.Text = "Не удалось удалить пользователя"
 				}
-				actionStateMap[userName] = ctx.ActionNone
+				actionStateMap[username] = ctx.ActionNone
 			case ctx.ActionManageFormArchive:
 				date, err := time.Parse("02 Jan 2006", message)
 
@@ -248,16 +257,19 @@ func main() {
 					}
 				}
 
-				actionStateMap[userName] = ctx.ActionNone
+				actionStateMap[username] = ctx.ActionNone
+			case ctx.ActionManageSettingsTimeStart, ctx.ActionManageSettingsTimeEnd, ctx.ActionManageSettingsTimeZone:
+				settings.ProcessKeyboardSettingsTime(db, &msg, &update, actionStateMap)
 			default:
-				actionStateMap[userName] = ctx.ActionNone
 				msg.Text = "Неизвестная команда"
+				actionStateMap[username] = ctx.ActionNone
 			}
 		} else {
-			if actionStateMap[userName] != ctx.ActionNone &&
-				actionStateMap[userName] != ctx.ActionManageFormActionMenu &&
-				actionStateMap[userName] != ctx.ActionManageUserActionMenu &&
-				actionStateMap[userName] != ctx.ActionManageDutyActionMenu {
+			if actionStateMap[username] != ctx.ActionNone &&
+				actionStateMap[username] != ctx.ActionManageFormActionMenu &&
+				actionStateMap[username] != ctx.ActionManageUserActionMenu &&
+				actionStateMap[username] != ctx.ActionManageDutyActionMenu &&
+				actionStateMap[username] != ctx.ActionManageSettingsActionMenu {
 				msg.Text = "Предыдущее действие не завершено"
 			} else {
 				switch update.Message.Command() {
@@ -265,40 +277,54 @@ func main() {
 					msg.ParseMode = "markdown"
 					msg.Text = ctx.HelpText
 				case "form":
-					duty := storage.DutyGetOne(db, &now)
-					if duty != userName {
-						msg.Text = fmt.Sprintf("Сегодня дежурный %s", duty)
-						actionStateMap[userName] = ctx.ActionNone
+					duty, err := storage.DutyGetOne(db, &now)
+					if err == nil {
+						msg.Text = "Не выбран дежурный"
+						actionStateMap[username] = ctx.ActionNone
 					} else {
-						msg.Text = ctx.FormActionMenuText
-						msg.ReplyMarkup = ctx.FormActionMenu
-						actionStateMap[userName] = ctx.ActionManageFormActionMenu
-					}
-				case "confirm":
-					duty := storage.DutyGetOne(db, &now)
-					if duty == userName {
-						msg.Text = "Вы не можете подтверждать свои отчеты"
-					} else {
-						if storage.FormIsCompleted(db, &now) {
-							storage.FormConfirm(db, &now, &userName)
-							msg.Text = "Отчет подтвержден"
+						if duty != username {
+							msg.Text = fmt.Sprintf("Сегодня дежурный %s", duty)
+							actionStateMap[username] = ctx.ActionNone
 						} else {
-							msg.Text = "Отчет еще не закончен"
+							msg.Text = ctx.FormActionMenuText
+							msg.ReplyMarkup = ctx.FormActionMenu
+							actionStateMap[username] = ctx.ActionManageFormActionMenu
 						}
 					}
-					actionStateMap[userName] = ctx.ActionNone
-				case "decline":
-					duty := storage.DutyGetOne(db, &now)
-					if duty == userName {
-						msg.Text = "Вы не можете подтверждать свои отчеты"
-						actionStateMap[userName] = ctx.ActionNone
+				case "confirm":
+					duty, err := storage.DutyGetOne(db, &now)
+					if err == nil {
+						msg.Text = "Не выбран дежурный"
 					} else {
-						if storage.FormIsCompleted(db, &now) {
-							msg.Text = "Введите доплнительный комментарий"
-							actionStateMap[userName] = ctx.ActionManageFormDeclineComment
+						if duty == username {
+							msg.Text = "Вы не можете подтверждать свои отчеты"
 						} else {
-							msg.Text = "Отчет еще не закончен"
-							actionStateMap[userName] = ctx.ActionNone
+							if storage.FormIsCompleted(db, &now) {
+								storage.FormConfirm(db, &now, &username)
+								msg.Text = "Отчет подтвержден"
+							} else {
+								msg.Text = "Отчет еще не закончен"
+							}
+						}
+					}
+					actionStateMap[username] = ctx.ActionNone
+				case "decline":
+					duty, err := storage.DutyGetOne(db, &now)
+					if err == nil {
+						msg.Text = "Не выбран дежурный"
+						actionStateMap[username] = ctx.ActionNone
+					} else {
+						if duty == username {
+							msg.Text = "Вы не можете подтверждать свои отчеты"
+							actionStateMap[username] = ctx.ActionNone
+						} else {
+							if storage.FormIsCompleted(db, &now) {
+								msg.Text = "Введите доплнительный комментарий"
+								actionStateMap[username] = ctx.ActionManageFormDeclineComment
+							} else {
+								msg.Text = "Отчет еще не закончен"
+								actionStateMap[username] = ctx.ActionNone
+							}
 						}
 					}
 				case "archive":
@@ -318,7 +344,7 @@ func main() {
 
 					msg.Text = "Выберите дату или введите в свободной форме"
 					msg.ReplyMarkup = dateListMenu
-					actionStateMap[userName] = ctx.ActionManageFormArchive
+					actionStateMap[username] = ctx.ActionManageFormArchive
 				case "report":
 					msg.ParseMode = "markdown"
 					if storage.FormIsCompleted(db, &now) {
@@ -329,13 +355,13 @@ func main() {
 				case "users":
 					msg.Text = ctx.UsersActionMenuText
 					msg.ReplyMarkup = ctx.UsersActionMenu
-					actionStateMap[userName] = ctx.ActionManageUserActionMenu
+					actionStateMap[username] = ctx.ActionManageUserActionMenu
 				case "duty":
 					msg.Text = ctx.DutyActionMenuText
 					msg.ReplyMarkup = ctx.DutyActionMenu
-					actionStateMap[userName] = ctx.ActionManageDutyActionMenu
-                case "settings":
-                    settings.PrepareCommandMenu(db, &msg, actionStateMap, &userName)
+					actionStateMap[username] = ctx.ActionManageDutyActionMenu
+				case "settings":
+					settings.PrepareCommandMenu(db, &msg, actionStateMap, &username)
 				default:
 					msg.Text = "Неизвестная команда"
 				}

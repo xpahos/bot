@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/xpahos/bot/ctx"
 
@@ -124,7 +125,7 @@ func UsersGetList(db *sql.DB) []string {
 }
 
 func UsersGetChatIDList(db *sql.DB) []int64 {
-	userSelect, err := db.Query("SELECT chat_id FROM users WHERE notifications = true AND chat_id != null")
+	userSelect, err := db.Query("SELECT chat_id FROM users WHERE notifications = true AND chat_id IS NOT NULL")
 	if err != nil {
 		logger.Errorf("Users get error: %v", err)
 		return make([]int64, 0)
@@ -146,22 +147,23 @@ func UsersGetChatIDList(db *sql.DB) []int64 {
 	return result
 }
 
-func UsersIsOnNotifications(db *sql.DB, user *string) bool {
-	userSelect, err := db.Prepare("SELECT notifications FROM users WHERE username = ?")
+func UsersGetOneNotificationInfo(db *sql.DB, user *string) (ctx.SettingsNotificationInfoStruct, error) {
+	var result ctx.SettingsNotificationInfoStruct
+
+	userSelect, err := db.Prepare("SELECT notifications, time_start, time_end, time_zone FROM users WHERE username = ?")
 	if err != nil {
 		logger.Errorf("Users notifications get error: %v", err)
-		return false;
+		return result, errors.New("DB error")
 	}
 	defer userSelect.Close()
 
-	ret := false
-	err = userSelect.QueryRow(*user).Scan(&ret)
+	err = userSelect.QueryRow(*user).Scan(&result.IsOn, &result.TimeStart, &result.TimeEnd, &result.TimeZone)
 	if err != nil {
 		logger.Errorf("Users notifications get error: %v", err)
-		return false;
+		return result, errors.New("DB error")
 	}
 
-	return ret
+	return result, nil
 }
 
 func UsersUpdateNotifications(db *sql.DB, user *string, flag bool) bool {
@@ -178,4 +180,80 @@ func UsersUpdateNotifications(db *sql.DB, user *string, flag bool) bool {
 	}
 
 	return true
+}
+
+func UsersUpdateNotificationsTime(db *sql.DB, user *string, val int, flag int) bool {
+	var field string
+
+	switch flag {
+	case ctx.SettingsTimeStartUpdate:
+		field = "time_start"
+	case ctx.SettingsTimeEndUpdate:
+		field = "time_end"
+	case ctx.SettingsTimeZoneUpdate:
+		field = "time_zone"
+	default:
+		logger.Errorf("Incorrect flag for notifications time update")
+		return false
+	}
+
+	query, err := db.Prepare("UPDATE users SET " + field + " = ? WHERE username = ?")
+	if err != nil {
+		logger.Errorf("Users set %s field rror: %s", field, err)
+		return false
+	}
+
+	_, err = query.Exec(val, *user)
+	if err != nil {
+		logger.Errorf("Users set %s field rror: %s", field, err)
+		return false
+	}
+
+	return true
+}
+
+func UsersGetAllNotifiable(db *sql.DB) []ctx.UsersNotificationDurationStruct {
+	userSelect, err := db.Query(`SELECT
+       		username, chat_id, time_start, time_end, time_zone
+		FROM users WHERE notifications = true AND chat_id IS NOT NULL`)
+	if err != nil {
+		logger.Errorf("Users get error: %v", err)
+		return make([]ctx.UsersNotificationDurationStruct, 0)
+	}
+	defer userSelect.Close()
+
+	var buf ctx.UsersNotificationDurationStruct
+	result := make([]ctx.UsersNotificationDurationStruct, 0, 9)
+	for userSelect.Next() {
+		err = userSelect.Scan(&buf.Username, &buf.ChatID, &buf.TimeStart, &buf.TimeEnd, &buf.TimeZone)
+		if err != nil {
+			logger.Errorf("Users get error: %v", err)
+			return make([]ctx.UsersNotificationDurationStruct, 0)
+		}
+
+		result = append(result, buf)
+	}
+
+	return result
+}
+
+func UsersGetOneNotifiable(db *sql.DB, user *string) (ctx.UsersNotificationDurationStruct, error) {
+	var result ctx.UsersNotificationDurationStruct
+
+	userSelect, err := db.Prepare(`SELECT
+       		username, chat_id, time_start, time_end, time_zone
+		FROM users WHERE notifications = true AND chat_id IS NOT NULL AND username = ?`)
+	if err != nil {
+		logger.Errorf("Users notifiable get error: %v", err)
+		return result, errors.New("Empty")
+	}
+	defer userSelect.Close()
+
+	err = userSelect.QueryRow(*user).Scan(&result.Username, &result.ChatID, &result.TimeStart, &result.TimeEnd, &result.TimeZone)
+	if err != nil {
+		logger.Errorf("Users notifiable get error: %v", err)
+		return result, errors.New("Empty")
+	}
+
+	return result, nil
 }
