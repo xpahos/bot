@@ -328,23 +328,7 @@ func main() {
 						}
 					}
 				case "archive":
-					after := time.Now().AddDate(0, 0, -16)
-					buttons := []tgbotapi.KeyboardButton{}
-					for i := 0; i < 16; i++ {
-						after = after.AddDate(0, 0, 1)
-						buttons = append(buttons, tgbotapi.NewKeyboardButton(after.Format("02 Jan 2006")))
-					}
-
-					dateListMenu := tgbotapi.NewReplyKeyboard(
-						tgbotapi.NewKeyboardButtonRow(buttons[0:4]...),
-						tgbotapi.NewKeyboardButtonRow(buttons[4:8]...),
-						tgbotapi.NewKeyboardButtonRow(buttons[8:12]...),
-						tgbotapi.NewKeyboardButtonRow(buttons[12:16]...),
-					)
-
-					msg.Text = "Выберите дату или введите в свободной форме"
-					msg.ReplyMarkup = dateListMenu
-					actionStateMap[username] = ctx.ActionManageFormArchive
+					form.PrepareCommandArchive(db, &msg, actionStateMap, &username)
 				case "report":
 					msg.ParseMode = "markdown"
 					if storage.FormIsCompleted(db, &now) {

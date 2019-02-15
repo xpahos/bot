@@ -1,6 +1,9 @@
 package form
 
 import (
+	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/xpahos/bot/ctx"
+
 	//"github.com/xpahos/bot/ctx"
 	"github.com/xpahos/bot/storage"
 
@@ -10,6 +13,29 @@ import (
 
 	"github.com/google/logger"
 )
+
+func PrepareCommandArchive(db *sql.DB, msg *tgbotapi.MessageConfig, action map[string]int, username *string) {
+	buttons := make([][]tgbotapi.KeyboardButton, 1)
+
+	for idx, dateStr := range storage.FormGetDatesList(db, 16) {
+		date, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			continue
+		}
+		if len(buttons) <= idx % 4 || len(buttons[idx % 4]) == 0 {
+			buttons[idx % 4] = make([]tgbotapi.KeyboardButton, 1)
+		}
+		buttons[idx % 4] = append(buttons[idx % 4], tgbotapi.NewKeyboardButton(date.Format("02 Jan 2006")))
+	}
+
+	logger.Errorf("%v", buttons)
+
+	menu := tgbotapi.NewReplyKeyboard(buttons...)
+
+	msg.Text = "Выберите дату или введите в свободной форме"
+	msg.ReplyMarkup = menu
+	action[*username] = ctx.ActionManageFormArchive
+}
 
 func GenerateTextReport(db *sql.DB, day *time.Time) string {
 	logger.Info("Report")

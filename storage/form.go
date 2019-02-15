@@ -360,28 +360,6 @@ func FormDecline(db *sql.DB, day *time.Time, userName *string, msg *string) bool
 	return true
 }
 
-func FormGetOne(db *sql.DB, day *time.Time) (ctx.FormStruct, error) {
-	var form ctx.FormStruct
-
-	formSelect, err := db.Prepare(`SELECT 
-        username, wind_blowing, weather_trend, hn24, h2d, hst, comments, avalanche_forecast_alp, avalanche_forecast_tree, avalanche_forecast_btree
-        FROM form WHERE date = ?`)
-	if err != nil {
-		logger.Errorf("Form get error: %v", err)
-		return form, err
-	}
-	defer formSelect.Close()
-
-	err = formSelect.QueryRow(day.Format("2006-01-02")).Scan(&form.Username, &form.WindBlowing, &form.WeatherTrend, &form.Hn24, &form.H2d, &form.Hst,
-		&form.Comments, &form.AvalancheAlp, &form.AvalancheTree, &form.AvalancheBTree)
-	if err != nil {
-		logger.Errorf("Form get error: %v", err)
-		return form, err
-	}
-
-	return form, nil
-}
-
 func FormGetWeatherChangesList(db *sql.DB, day *time.Time) []string {
 	formSelect, err := db.Prepare("SELECT changes FROM form_weather_changes WHERE date = ?")
 	if err != nil {
@@ -494,6 +472,63 @@ func FormGetStatusList(db *sql.DB, day *time.Time, confirm bool) []ctx.FormStatu
 
 	if err := rows.Err(); err != nil {
 		logger.Errorf("GetStatusList got error: %v", err)
+		return nil
+	}
+
+	return result
+}
+
+func FormGetOne(db *sql.DB, day *time.Time) (ctx.FormStruct, error) {
+	var form ctx.FormStruct
+
+	formSelect, err := db.Prepare(`SELECT 
+        username, wind_blowing, weather_trend, hn24, h2d, hst, comments, avalanche_forecast_alp, avalanche_forecast_tree, avalanche_forecast_btree
+        FROM form WHERE date = ?`)
+	if err != nil {
+		logger.Errorf("Form get error: %v", err)
+		return form, err
+	}
+	defer formSelect.Close()
+
+	err = formSelect.QueryRow(day.Format("2006-01-02")).Scan(&form.Username, &form.WindBlowing, &form.WeatherTrend, &form.Hn24, &form.H2d, &form.Hst,
+		&form.Comments, &form.AvalancheAlp, &form.AvalancheTree, &form.AvalancheBTree)
+	if err != nil {
+		logger.Errorf("Form get error: %v", err)
+		return form, err
+	}
+
+	return form, nil
+}
+
+func FormGetDatesList(db *sql.DB, count int) []string {
+	query, err := db.Prepare(`SELECT date FROM form WHERE completed = TRUE ORDER BY date DESC LIMIT ?`)
+	if err != nil {
+		logger.Errorf("Form dates get error: %v", err)
+		return nil
+	}
+	defer query.Close()
+
+	rows, err := query.Query(count)
+	if err != nil {
+		logger.Errorf("Form dates get error: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var buf string
+	result := make([]string, 0, 0)
+	for rows.Next() {
+		err = rows.Scan(&buf)
+		if err != nil {
+			logger.Errorf("Form get error: %v", err)
+			return nil
+		}
+
+		result = append(result, buf)
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.Errorf("GetDatesList got error: %v", err)
 		return nil
 	}
 
