@@ -40,7 +40,18 @@ func PrepareCommandArchive(db *sql.DB, msg *tgbotapi.MessageConfig, action map[s
 	action[*username] = ctx.ActionManageFormArchive
 }
 
-func GenerateTextReport(db *sql.DB, day *time.Time) string {
+func PrepareCommandReport(db *sql.DB, msg *tgbotapi.MessageConfig, action map[string]int)  {
+	now := time.Now()
+
+	msg.ParseMode = "markdown"
+	if storage.FormIsCompleted(db, &now) {
+		msg.Text = generateTextReport(db, &now)
+	} else {
+		msg.Text = "Отчет еще не закончен"
+	}
+}
+
+func generateTextReport(db *sql.DB, day *time.Time) string {
 	logger.Info("Report")
 	report := fmt.Sprintf("Отчет за *%s*:\n\n", day.Format("02 Jan 2006"))
 	data, err := storage.FormGetOne(db, day)
