@@ -8,7 +8,7 @@ import (
 	"github.com/xpahos/bot/storage"
 )
 
-const constSleepTime  = 50*60
+const constSleepTime  = 10*60
 
 func CronJobCheckDuty(notifies chan<- int64, db *sql.DB) {
 	cronJobSleepRoundTime(true)
