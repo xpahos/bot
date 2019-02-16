@@ -56,8 +56,8 @@ func CronJobCheckReport(notifies chan<- int64, db *sql.DB) {
 	Round time on start
 */
 func cronJobSleepRoundTime(skip bool) {
-	now := time.Now()
-	sleepTime := (60-now.Second())*60 + (60 - now.Minute())
+	_, min, sec := time.Now().Clock()
+	sleepTime := (60-sec) + (60 - min)*60
 
 	// Sleep only if current minutes less then 10
 	if !skip || (skip && sleepTime > constSleepTime) {
