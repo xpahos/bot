@@ -41,8 +41,8 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		actionStateMap[userName] = ctx.ActionNone
 	} else {
 		occupied := make(map[string]bool)
-		start := time.Now().AddDate(0, 0, 1)
-		end := time.Now().AddDate(0, 0, 16)
+		start := time.Now().AddDate(0, 0, 0)
+		end := time.Now().AddDate(0, 0, 15)
 
 		for _, duty := range storage.DutyGetList(db, &start, &end) {
 			occupied[duty.Date] = true
@@ -51,8 +51,6 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		after := time.Now()
 		buttons := make([]tgbotapi.InlineKeyboardButton, 16)
 		for i := range buttons {
-			after = after.AddDate(0, 0, 1)
-
 			var userString string
 			dbString := after.Format("2006-01-02")
 
@@ -63,6 +61,7 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 			}
 
 			buttons[i] = tgbotapi.NewInlineKeyboardButtonData(userString, dbString)
+			after = after.AddDate(0, 0, 1)
 		}
 
 		dateListMenu := tgbotapi.NewInlineKeyboardMarkup(
@@ -100,13 +99,16 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 }
 
 func ProcessInlineDutyEdit(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int, add bool) {
-	logger.Infof("123")
+	logger.Infof("InlineDutyEdit")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
+	now := time.Now()
 
 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "")
 	if add {
-		if storage.DutyAddOne(db, &message, &userName) {
+		// If date is not occupied then add duty
+		_, err := storage.DutyGetOne(db, &now)
+		if err == nil && storage.DutyAddOne(db, &message, &userName) {
 			msg.Text = "Дежурство добавлено"
 			logger.Infof("User %v is duty on %v", userName, message)
 		} else {
