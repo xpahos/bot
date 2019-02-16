@@ -8,8 +8,10 @@ import (
 	"github.com/xpahos/bot/storage"
 )
 
+const constSleepTime  = 50*60
+
 func CronJobCheckDuty(notifies chan<- int64, db *sql.DB) {
-	cronJobRoundTime()
+	cronJobSleepRoundTime(true)
 
 	for {
 		for _, user := range storage.UsersGetAllNotifiable(db) {
@@ -20,13 +22,12 @@ func CronJobCheckDuty(notifies chan<- int64, db *sql.DB) {
 				logger.Infof("Duty notification was scheduled to send to %s", user.Username)
 			}
 		}
-
-		time.Sleep(time.Hour)
+		cronJobSleepRoundTime(false)
 	}
 }
 
 func CronJobCheckReport(notifies chan<- int64, db *sql.DB) {
-	cronJobRoundTime()
+	cronJobSleepRoundTime(true)
 
 	for {
 		now := time.Now()
@@ -47,19 +48,19 @@ func CronJobCheckReport(notifies chan<- int64, db *sql.DB) {
 		} else {
 			logger.Errorf("Report notification was not sent because of no duty")
 		}
-		time.Sleep(time.Hour)
+		cronJobSleepRoundTime(false)
 	}
 }
 
 /*
 	Round time on start
 */
-func cronJobRoundTime() {
+func cronJobSleepRoundTime(skip bool) {
 	now := time.Now()
 	sleepTime := (60-now.Second())*60 + (60 - now.Minute())
 
 	// Sleep only if current minutes less then 10
-	if sleepTime > 50*60 {
+	if !skip || (skip && sleepTime > constSleepTime) {
 		time.Sleep(time.Duration(sleepTime) * time.Second)
 	}
 }
