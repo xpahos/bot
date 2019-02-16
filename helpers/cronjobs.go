@@ -8,7 +8,7 @@ import (
 	"github.com/xpahos/bot/storage"
 )
 
-const constSleepTime  = 10*60
+const constSleepTime  = 50*60
 
 func CronJobCheckDuty(notifies chan<- int64, db *sql.DB) {
 	cronJobSleepRoundTime(true)
@@ -60,7 +60,7 @@ func cronJobSleepRoundTime(skip bool) {
 	sleepTime := (60-sec) + (60 - min)*60
 
 	// Sleep only if current minutes less then 10
-	if !skip || (skip && sleepTime > constSleepTime) {
+	if !skip || (skip && sleepTime < constSleepTime) {
 		time.Sleep(time.Duration(sleepTime) * time.Second)
 	}
 }
