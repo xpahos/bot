@@ -23,6 +23,7 @@ import (
 
 var logPath = flag.String("log", "bot.log", "Log path")
 var verbose = flag.Bool("verbose", false, "Print info level logs to stdout")
+var backlog = flag.Uint("backlog", 5, "Set max size for the updates buffer")
 
 func DispatchMessage(db *sql.DB, bot *tgbotapi.BotAPI, action map[string]int, formProblemMap map[string]*ctx.FormProblemStruct, notifyReport chan<- ctx.NotifyNewReportStruct, updates <-chan tgbotapi.Update) {
 	for update := range updates {
@@ -210,7 +211,7 @@ func main() {
 	go helpers.CronJobCheckReport(notifyNoReport, db)
 
 	// Routine for async processing updates
-	updatesChannel := make(chan tgbotapi.Update, 1)
+	updatesChannel := make(chan tgbotapi.Update, *backlog)
 	go DispatchMessage(db, bot, actionStateMap, formProblemMap, notifyReport, updatesChannel)
 
 	updates, err := bot.GetUpdatesChan(u)
