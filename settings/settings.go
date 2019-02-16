@@ -19,48 +19,6 @@ const (
 	TIME_ZONE  = "TIME_ZONE"
 )
 
-func PrepareCommandMenu(db *sql.DB, msg *tgbotapi.MessageConfig, action map[string]int, username *string) {
-	info, err := storage.UsersGetOneNotificationInfo(db, username)
-
-	if err != nil {
-		msg.Text = "Неизвестная ошибка"
-		action[*username] = ctx.ActionNone
-		return
-	}
-
-	notificationButtonText := "Включить оповещения"
-	notificationButtonAction := NOTIFY_ON
-
-	if info.IsOn {
-		notificationButtonText = "Выключить оповещения"
-		notificationButtonAction = NOTIFY_OFF
-	}
-
-	notificationButtonTimeStart := fmt.Sprintf("С %d", info.TimeStart)
-	notificationButtonTimeEnd := fmt.Sprintf("До %d", info.TimeEnd)
-	notificationButtonTimeZone := "Зона "
-
-	if info.TimeZone > 0 {
-		notificationButtonTimeZone += "+"
-	}
-	notificationButtonTimeZone += strconv.Itoa(info.TimeZone)
-
-	menu := tgbotapi.NewInlineKeyboardMarkup(
-		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData(notificationButtonText, notificationButtonAction),
-		},
-		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData(notificationButtonTimeStart, TIME_START),
-			tgbotapi.NewInlineKeyboardButtonData(notificationButtonTimeEnd, TIME_END),
-			tgbotapi.NewInlineKeyboardButtonData(notificationButtonTimeZone, TIME_ZONE),
-		},
-	)
-
-	msg.Text = ctx.SettingsActionMenuText
-	msg.ReplyMarkup = menu
-	action[*username] = ctx.ActionManageSettingsActionMenu
-}
-
 func ProcessInlineSettingsMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
 	logger.Infof("Settings menu")
 	username := update.CallbackQuery.From.UserName
@@ -108,11 +66,11 @@ func ProcessInlineSettingsMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotap
 	chat.Send(bot, msg)
 }
 
-func ProcessKeyboardSettingsTime(db *sql.DB, msg *tgbotapi.MessageConfig, update *tgbotapi.Update, actionStateMap map[string]int) {
+func ProcessKeyboardSettingsTime(db *sql.DB, msg *tgbotapi.MessageConfig, update *tgbotapi.Update, action map[string]int) {
 	username := update.Message.From.UserName
 	message, err := strconv.Atoi(update.Message.Text)
 
-	switch actionStateMap[username] {
+	switch action[username] {
 	case ctx.ActionManageSettingsTimeStart:
 		if err != nil || (message < 0 || message > 24) {
 			msg.Text = "Неверный формат времени. Допустимые значения от 0 до 24"
@@ -146,5 +104,5 @@ func ProcessKeyboardSettingsTime(db *sql.DB, msg *tgbotapi.MessageConfig, update
 	default:
 		msg.Text = "Неверная комманда"
 	}
-	actionStateMap[username] = ctx.ActionNone
+	action[username] = ctx.ActionNone
 }
