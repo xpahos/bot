@@ -108,7 +108,7 @@ func ProcessInlineDutyEdit(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Up
 	if add {
 		// If date is not occupied then add duty
 		_, err := storage.DutyGetOne(db, &now)
-		if err == nil && storage.DutyAddOne(db, &message, &userName) {
+		if (err == nil || (err != nil && err == sql.ErrNoRows)) && storage.DutyAddOne(db, &message, &userName) {
 			msg.Text = "Дежурство добавлено"
 			logger.Infof("User %v is duty on %v", userName, message)
 		} else {
