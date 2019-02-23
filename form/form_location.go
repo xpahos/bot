@@ -75,7 +75,7 @@ func ProcessInlineFormType(bot *tgbotapi.BotAPI, update *tgbotapi.Update, action
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%s %s", ctx.FormProblemTypeText, message),
+		fmt.Sprintf("%s %s", ctx.FormProblemTypeText, ctx.FormProblemTypeMappingText[message]),
 	)
 
 	if showMenu {
@@ -117,10 +117,16 @@ func ProcessInlineFormLocations(bot *tgbotapi.BotAPI, update *tgbotapi.Update, a
 		formProblemMap[userName].ProblemLocation[message] = true
 	}
 
+	var buf string
+	for k, _ := range formProblemMap[userName].ProblemLocation {
+		buf += ctx.FormProblemLocationMappingText[k] + " "
+	}
+	msgText := fmt.Sprintf("%s %s", ctx.FormProblemLocationText, buf);
+
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%s %v", ctx.FormProblemLocationText, formProblemMap[userName].ProblemLocation),
+		msgText,
 	)
 
 	if showMenu {
@@ -157,7 +163,7 @@ func ProcessInlineFormLikelyHood(bot *tgbotapi.BotAPI, update *tgbotapi.Update, 
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormProblemLikelyHoodText, formProblemMap[userName].ProblemLikelyHood),
+		fmt.Sprintf("%v %v", ctx.FormProblemLikelyHoodText, ctx.FormProblemLikelyHoodMappingText[message]),
 	)
 
 	if showMenu {

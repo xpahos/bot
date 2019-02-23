@@ -75,7 +75,7 @@ func ProcessInlineFormWindBlowing(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbo
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormWindBlowingText, message),
+		fmt.Sprintf("%v %v", ctx.FormWindBlowingText, ctx.FormWindBlowingMappingText[message]),
 	)
 
 	if showMenu {
@@ -107,7 +107,7 @@ func ProcessInlineFormWeatherTrend(db *sql.DB, bot *tgbotapi.BotAPI, update *tgb
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormWeatherTrendText, message),
+		fmt.Sprintf("%v %v", ctx.FormWeatherTrendText, ctx.FormWeatherTrendMappingText[message]),
 	)
 
 	if showMenu {
