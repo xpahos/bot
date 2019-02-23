@@ -127,7 +127,7 @@ func ProcessInlineDutyEdit(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Up
 	editMsg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.DutyActionMenuText, message),
+		fmt.Sprintf("%v %v", ctx.DutyDateText, message),
 	)
 	chat.Send(bot, editMsg)
 
