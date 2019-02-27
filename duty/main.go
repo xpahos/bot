@@ -8,6 +8,7 @@ import (
 
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api"
@@ -15,7 +16,7 @@ import (
 )
 
 func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Update, actionStateMap map[string]int) {
-	logger.Infof("123")
+	logger.Infof("ProcessInlineDutyActionMenu")
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
@@ -29,11 +30,13 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 
 		duties := storage.DutyGetList(db, &start, &end)
 
-		result := fmt.Sprintf("Дежурства с *%v* по *%v*\n\n", start.Format("02 Jan 2006"), end.Format("02 Jan 2006"))
-		for _, duty := range duties {
-			result = fmt.Sprintf("%v*%v* - `%v`\n", result, duty.Date, duty.User)
+		results := make([]string, 1 + len(duties)) // 1 for header
+		results[0] = fmt.Sprintf("Дежурства с *%v* по *%v*\n", start.Format("02 Jan 2006"), end.Format("02 Jan 2006"))
+		for i, duty := range duties {
+			results[i+1] = fmt.Sprintf("*%v* - `%v`", duty.Date, duty.User)
 		}
 
+		result := strings.Join(results, "\n")
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, result)
 		msg.ParseMode = "markdown"
 		chat.Send(bot, msg)
@@ -41,7 +44,7 @@ func ProcessInlineDutyActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 		actionStateMap[userName] = ctx.ActionNone
 	} else {
 		occupied := make(map[string]bool)
-		start := time.Now().AddDate(0, 0, 0)
+		start := time.Now()
 		end := time.Now().AddDate(0, 0, 15)
 
 		for _, duty := range storage.DutyGetList(db, &start, &end) {
@@ -108,7 +111,7 @@ func ProcessInlineDutyEdit(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Up
 	if add {
 		// If date is not occupied then add duty
 		_, err := storage.DutyGetOne(db, &now)
-		if (err == nil || (err != nil && err == sql.ErrNoRows)) && storage.DutyAddOne(db, &message, &userName) {
+		if (err == nil || err == sql.ErrNoRows) && storage.DutyAddOne(db, &message, &userName) {
 			msg.Text = "Дежурство добавлено"
 			logger.Infof("User %v is duty on %v", userName, message)
 		} else {
