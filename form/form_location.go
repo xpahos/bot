@@ -8,6 +8,7 @@ import (
 
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api"
@@ -19,16 +20,13 @@ func ProcessInlineFormProblemMenu(bot *tgbotapi.BotAPI, update *tgbotapi.Update,
 	userName := update.CallbackQuery.From.UserName
 	message := update.CallbackQuery.Data
 
-	showMenu := true
 	skipNext := false
 
 	switch message {
 	case "Y":
 		var tmp ctx.FormProblemStruct
 		formProblemMap[userName] = &tmp
-		showMenu = false
 	default:
-		showMenu = false
 		skipNext = true
 	}
 
@@ -37,10 +35,6 @@ func ProcessInlineFormProblemMenu(bot *tgbotapi.BotAPI, update *tgbotapi.Update,
 		update.CallbackQuery.Message.MessageID,
 		fmt.Sprintf("%s %s", ctx.FormProblemMenuText, message),
 	)
-
-	if showMenu {
-		msg.ReplyMarkup = &ctx.FormProblemType
-	}
 
 	chat.Send(bot, msg)
 
@@ -117,11 +111,12 @@ func ProcessInlineFormLocations(bot *tgbotapi.BotAPI, update *tgbotapi.Update, a
 		formProblemMap[userName].ProblemLocation[message] = true
 	}
 
-	var buf string
-	for k, _ := range formProblemMap[userName].ProblemLocation {
-		buf += ctx.FormProblemLocationMappingText[k] + " "
+	problemLocations := make([]string, 1, 1+len(formProblemMap[userName].ProblemLocation)) // 1 for header
+	problemLocations[1] = ctx.FormProblemLocationText
+	for k := range formProblemMap[userName].ProblemLocation {
+		problemLocations = append(problemLocations, ctx.FormProblemLocationMappingText[k])
 	}
-	msgText := fmt.Sprintf("%s %s", ctx.FormProblemLocationText, buf);
+	msgText := strings.Join(problemLocations, " ")
 
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
@@ -163,7 +158,7 @@ func ProcessInlineFormLikelyHood(bot *tgbotapi.BotAPI, update *tgbotapi.Update, 
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormProblemLikelyHoodText, ctx.FormProblemLikelyHoodMappingText[message]),
+		fmt.Sprintf("%s %s", ctx.FormProblemLikelyHoodText, ctx.FormProblemLikelyHoodMappingText[message]),
 	)
 
 	if showMenu {
@@ -199,7 +194,7 @@ func ProcessInlineFormSize(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotapi.Up
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormProblemSizeText, formProblemMap[userName].ProblemSize),
+		fmt.Sprintf("%s %s", ctx.FormProblemSizeText, formProblemMap[userName].ProblemSize),
 	)
 
 	if showMenu {

@@ -85,31 +85,30 @@ func ProcessKeyboardFormComments(db *sql.DB, msg *tgbotapi.MessageConfig, update
 func ProcessKeyboardFormDecline(db *sql.DB, msg *tgbotapi.MessageConfig, update *tgbotapi.Update, action map[string]int) {
 	username := update.Message.From.UserName
 	message := update.Message.Text
+	action[username] = ctx.ActionNone
 	now := time.Now()
 
 	if storage.FormDecline(db, &now, &username, &message) {
 		msg.Text = "Комментарий добавлен"
-		action[username] = ctx.ActionNone
 	} else {
-		msg.Text = "Неудалось внести данные"
-		action[username] = ctx.ActionNone
+		msg.Text = "Не удалось внести данные"
 	}
 }
 
 func ProcessKeyboardFormArchive(db *sql.DB, msg *tgbotapi.MessageConfig, update *tgbotapi.Update, action map[string]int) {
 	username := update.Message.From.UserName
 	date, err := time.Parse("02 Jan 2006", update.Message.Text)
+	action[username] = ctx.ActionNone
 
 	if err != nil {
 		msg.Text = "Неверный формат даты"
+		return
+	} 
+	
+	msg.ParseMode = "markdown"
+	if storage.FormIsCompleted(db, &date) {
+		msg.Text = generateTextReport(db, &date)
 	} else {
-		msg.ParseMode = "markdown"
-		if storage.FormIsCompleted(db, &date) {
-			msg.Text = generateTextReport(db, &date)
-		} else {
-			msg.Text = "Отчет еще не закончен"
-		}
+		msg.Text = "Отчет еще не закончен"
 	}
-
-	action[username] = ctx.ActionNone
 }

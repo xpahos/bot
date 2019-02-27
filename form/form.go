@@ -41,7 +41,7 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 			msg.Text = "Отчет за сегодняшний день удален"
 			logger.Infof("User %s deleted report for %s", username, now.Format("02 Jan 2006"))
 		} else {
-			msg.Text = "Неудалось удалить отчет за сегодня"
+			msg.Text = "Не удалось удалить отчет за сегодня"
 		}
 		chat.Send(bot, msg)
 		actionStateMap[username] = ctx.ActionNone
@@ -50,7 +50,7 @@ func ProcessInlineFormActionMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbot
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormActionMenuText, message),
+		fmt.Sprintf("%s %s", ctx.FormActionMenuText, message),
 	)
 
 	if showMenu {
@@ -75,7 +75,7 @@ func ProcessInlineFormWindBlowing(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbo
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormWindBlowingText, ctx.FormWindBlowingMappingText[message]),
+		fmt.Sprintf("%s %s", ctx.FormWindBlowingText, ctx.FormWindBlowingMappingText[message]),
 	)
 
 	if showMenu {
@@ -107,7 +107,7 @@ func ProcessInlineFormWeatherTrend(db *sql.DB, bot *tgbotapi.BotAPI, update *tgb
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormWeatherTrendText, ctx.FormWeatherTrendMappingText[message]),
+		fmt.Sprintf("%s %s", ctx.FormWeatherTrendText, ctx.FormWeatherTrendMappingText[message]),
 	)
 
 	if showMenu {
@@ -132,7 +132,7 @@ func ProcessInlineFormWeatherChangesAdditional(bot *tgbotapi.BotAPI, update *tgb
 	msg := tgbotapi.NewEditMessageText(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		fmt.Sprintf("%v %v", ctx.FormWeatherChangesAdditionalText, message),
+		fmt.Sprintf("%s %s", ctx.FormWeatherChangesAdditionalText, message),
 	)
 
 	chat.Send(bot, msg)
@@ -163,17 +163,17 @@ func ProcessInlineFormAvalanche(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbota
 
 	switch zone {
 	case ctx.AlpForecast:
-		text = fmt.Sprintf("%v %v", ctx.FormAvalancheForecastAlpText, message)
+		text = fmt.Sprintf("%s %s", ctx.FormAvalancheForecastAlpText, message)
 	case ctx.TreeForecast:
-		text = fmt.Sprintf("%v %v", ctx.FormAvalancheForecastTreeText, message)
+		text = fmt.Sprintf("%s %s", ctx.FormAvalancheForecastTreeText, message)
 	case ctx.BTreeForecast:
-		text = fmt.Sprintf("%v %v", ctx.FormAvalancheForecastBTreeText, message)
+		text = fmt.Sprintf("%s %s", ctx.FormAvalancheForecastBTreeText, message)
 	case ctx.AlpConfidence:
-		text = fmt.Sprintf("%v %v", ctx.FormAvalancheConfidenceAlpText, message)
+		text = fmt.Sprintf("%s %s", ctx.FormAvalancheConfidenceAlpText, message)
 	case ctx.TreeConfidence:
-		text = fmt.Sprintf("%v %v", ctx.FormAvalancheConfidenceTreeText, message)
+		text = fmt.Sprintf("%s %s", ctx.FormAvalancheConfidenceTreeText, message)
 	case ctx.BTreeConfidence:
-		text = fmt.Sprintf("%v %v", ctx.FormAvalancheConfidenceBTreeText, message)
+		text = fmt.Sprintf("%s %s", ctx.FormAvalancheConfidenceBTreeText, message)
 	}
 
 	msg := tgbotapi.NewEditMessageText(

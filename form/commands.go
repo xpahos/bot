@@ -16,37 +16,42 @@ func PrepareCommandForm(db *sql.DB, msg *tgbotapi.MessageConfig, action map[stri
 	if err != nil {
 		msg.Text = "Не выбран дежурный"
 		action[*username] = ctx.ActionNone
-	} else {
-		if duty != *username {
-			msg.Text = fmt.Sprintf("Сегодня дежурный %s", duty)
-			action[*username] = ctx.ActionNone
-		} else {
-			msg.Text = ctx.FormActionMenuText
-			msg.ReplyMarkup = ctx.FormActionMenu
-			action[*username] = ctx.ActionManageFormActionMenu
-		}
+		return
 	}
+
+	if duty != *username {
+		msg.Text = fmt.Sprintf("Сегодня дежурный %s", duty)
+		action[*username] = ctx.ActionNone
+		return
+	}
+
+	msg.Text = ctx.FormActionMenuText
+	msg.ReplyMarkup = ctx.FormActionMenu
+	action[*username] = ctx.ActionManageFormActionMenu
 }
 
 func PrepareCommandConfirm(db *sql.DB, msg *tgbotapi.MessageConfig, action map[string]int, username *string) {
+	action[*username] = ctx.ActionNone
 	now := time.Now()
 
 	duty, err := storage.DutyGetOne(db, &now)
 	if err != nil {
 		msg.Text = "Не выбран дежурный"
-	} else {
-		if duty == *username {
-			msg.Text = "Вы не можете подтверждать свои отчеты"
-		} else {
-			if storage.FormIsCompleted(db, &now) {
-				storage.FormConfirm(db, &now, username)
-				msg.Text = "Отчет подтвержден"
-			} else {
-				msg.Text = "Отчет еще не закончен"
-			}
-		}
+		return
 	}
-	action[*username] = ctx.ActionNone
+
+	if duty == *username {
+		msg.Text = "Вы не можете подтверждать свои отчеты"
+		return
+	}
+
+	if storage.FormIsCompleted(db, &now) {
+		storage.FormConfirm(db, &now, username)
+		msg.Text = "Отчет подтвержден"
+		return
+	}
+
+	msg.Text = "Отчет еще не закончен"
 }
 
 func PrepareCommandDecline(db *sql.DB, msg *tgbotapi.MessageConfig, action map[string]int, username *string)  {
@@ -56,18 +61,21 @@ func PrepareCommandDecline(db *sql.DB, msg *tgbotapi.MessageConfig, action map[s
 	if err != nil {
 		msg.Text = "Не выбран дежурный"
 		action[*username] = ctx.ActionNone
-	} else {
-		if duty == *username {
-			msg.Text = "Вы не можете подтверждать свои отчеты"
-			action[*username] = ctx.ActionNone
-		} else {
-			if storage.FormIsCompleted(db, &now) {
-				msg.Text = "Введите доплнительный комментарий"
-				action[*username] = ctx.ActionManageFormDeclineComment
-			} else {
-				msg.Text = "Отчет еще не закончен"
-				action[*username] = ctx.ActionNone
-			}
-		}
+		return
 	}
+
+	if duty == *username {
+		msg.Text = "Вы не можете подтверждать свои отчеты"
+		action[*username] = ctx.ActionNone
+		return
+	}
+
+	if storage.FormIsCompleted(db, &now) {
+		msg.Text = "Введите дополнительный комментарий"
+		action[*username] = ctx.ActionManageFormDeclineComment
+		return
+	}
+
+	msg.Text = "Отчет еще не закончен"
+	action[*username] = ctx.ActionNone
 }
