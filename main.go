@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sync"
 	"flag"
 	"github.com/xpahos/bot/chat"
 	"github.com/xpahos/bot/ctx"
@@ -21,11 +22,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var logPath = flag.String("log", "bot.log", "Log path")
-var verbose = flag.Bool("verbose", false, "Print info level logs to stdout")
-var backlog = flag.Uint("backlog", 5, "Set max size for the updates buffer")
-
-func DispatchMessage(db *sql.DB, bot *tgbotapi.BotAPI, action map[string]int, formProblemMap map[string]*ctx.FormProblemStruct, notifyReport chan<- ctx.NotifyNewReportStruct, updates <-chan tgbotapi.Update) {
+func dispatchMessage(db *sql.DB, bot *tgbotapi.BotAPI, action map[string]int, formProblemMap map[string]*ctx.FormProblemStruct, notifyReport chan<- ctx.NotifyNewReportStruct, updates <-chan tgbotapi.Update) {
 	for update := range updates {
 		if update.CallbackQuery != nil {
 			username := update.CallbackQuery.From.UserName
@@ -150,6 +147,9 @@ func DispatchMessage(db *sql.DB, bot *tgbotapi.BotAPI, action map[string]int, fo
 }
 
 func main() {
+	logPath := flag.String("log", "bot.log", "Log path")
+	verbose := flag.Bool("verbose", false, "Print info level logs to stdout")
+	backlog := flag.Uint("backlog", 5, "Set max size for the updates buffer")
 	flag.Parse()
 
 	fd, err := os.OpenFile(*logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
@@ -212,7 +212,14 @@ func main() {
 
 	// Routine for async processing updates
 	updatesChannel := make(chan tgbotapi.Update, *backlog)
-	go DispatchMessage(db, bot, actionStateMap, formProblemMap, notifyReport, updatesChannel)
+	dispatchDone := &sync.WaitGroup{}
+	dispatchDone.Add(1)
+	go func() {
+		defer dispatchDone.Done()
+		dispatchMessage(db, bot, actionStateMap, formProblemMap, notifyReport, updatesChannel)
+	}()
+	defer dispatchDone.Wait()
+	defer close(updatesChannel)
 
 	updates, err := bot.GetUpdatesChan(u)
 	if err != nil {
@@ -252,6 +259,5 @@ func main() {
 		}
 
 		updatesChannel <- update
-
 	}
 }

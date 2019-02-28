@@ -30,7 +30,7 @@ func ProcessInlineSettingsMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotap
 		if storage.UsersUpdateNotifications(db, &username, true) {
 			msg.Text = "Уведомления включены"
 		} else {
-			msg.Text = "Неудалось включить уведомления"
+			msg.Text = "Не удалось включить уведомления"
 		}
 		chat.Send(bot, msg)
 		actionStateMap[username] = ctx.ActionNone
@@ -39,7 +39,7 @@ func ProcessInlineSettingsMenu(db *sql.DB, bot *tgbotapi.BotAPI, update *tgbotap
 		if storage.UsersUpdateNotifications(db, &username, false) {
 			msg.Text = "Уведомления выключены"
 		} else {
-			msg.Text = "Неудалось выключить уведомления"
+			msg.Text = "Не удалось выключить уведомления"
 		}
 		chat.Send(bot, msg)
 		actionStateMap[username] = ctx.ActionNone
@@ -78,7 +78,7 @@ func ProcessKeyboardSettingsTime(db *sql.DB, msg *tgbotapi.MessageConfig, update
 			if storage.UsersUpdateNotificationsTime(db, &username, message, ctx.SettingsTimeStartUpdate) {
 				msg.Text = fmt.Sprintf("Уведомления будут приходить с %d", message)
 			} else {
-				msg.Text = "Неудалось изменить время начала уведомлений"
+				msg.Text = "Не удалось изменить время начала уведомлений"
 			}
 		}
 	case ctx.ActionManageSettingsTimeEnd:
@@ -88,7 +88,7 @@ func ProcessKeyboardSettingsTime(db *sql.DB, msg *tgbotapi.MessageConfig, update
 			if storage.UsersUpdateNotificationsTime(db, &username, message, ctx.SettingsTimeEndUpdate) {
 				msg.Text = fmt.Sprintf("Уведомления будут приходить до %d", message)
 			} else {
-				msg.Text = "Неудалось изменить время окончания уведомлений"
+				msg.Text = "Не удалось изменить время окончания уведомлений"
 			}
 		}
 	case ctx.ActionManageSettingsTimeZone:
@@ -98,11 +98,11 @@ func ProcessKeyboardSettingsTime(db *sql.DB, msg *tgbotapi.MessageConfig, update
 			if storage.UsersUpdateNotificationsTime(db, &username, message, ctx.SettingsTimeZoneUpdate) {
 				msg.Text = fmt.Sprintf("Уведомления будут приходить во временной зоне %d", message)
 			} else {
-				msg.Text = "Неудалось изменить временную зону"
+				msg.Text = "Не удалось изменить временную зону"
 			}
 		}
 	default:
-		msg.Text = "Неверная комманда"
+		msg.Text = "Неверная команда"
 	}
 	action[username] = ctx.ActionNone
 }
