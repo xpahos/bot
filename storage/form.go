@@ -78,12 +78,13 @@ func FormAddProblem(db *sql.DB, day *time.Time, user *string, ctx *ctx.FormProbl
 	}
 	defer formInsert.Close()
 
-	var location []string
+	locations := make([]string, 0, len(ctx.ProblemLocation))
 	for key := range ctx.ProblemLocation {
-		location = append(location, key)
+		locations = append(locations, key)
 	}
+	location := strings.Join(locations, ",")
 
-	_, err = formInsert.Exec(day.Format("2006-01-02"), *user, ctx.ProblemType, strings.Join(location, ","), ctx.ProblemLikelyHood, ctx.ProblemSize)
+	_, err = formInsert.Exec(day.Format("2006-01-02"), *user, ctx.ProblemType, location, ctx.ProblemLikelyHood, ctx.ProblemSize)
 	if err != nil {
 		logger.Infof("Form insert error: %v", err)
 		return false
@@ -129,14 +130,14 @@ func FormUpdateWeatherTrend(db *sql.DB, day *time.Time, msg *string) bool {
 func FormUpdateHN24(db *sql.DB, day *time.Time, msg *string) bool {
 	formUpdate, err := db.Prepare("UPDATE form SET hn24 = ? WHERE date = ?")
 	if err != nil {
-		logger.Infof("%v", err)
+		logger.Infof("Form update hn24 error: %v", err)
 		return false
 	}
 	defer formUpdate.Close()
 
 	_, err = formUpdate.Exec(msg, day.Format("2006-01-02"))
 	if err != nil {
-		logger.Infof("%v", err)
+		logger.Infof("Form update hn24 error: %v", err)
 		return false
 	}
 
@@ -146,14 +147,14 @@ func FormUpdateHN24(db *sql.DB, day *time.Time, msg *string) bool {
 func FormUpdateH2D(db *sql.DB, day *time.Time, msg *string) bool {
 	formUpdate, err := db.Prepare("UPDATE form SET h2d = ? WHERE date = ?")
 	if err != nil {
-		logger.Infof("%v", err)
+		logger.Infof("Form update h2d error: %v", err)
 		return false
 	}
 	defer formUpdate.Close()
 
 	_, err = formUpdate.Exec(msg, day.Format("2006-01-02"))
 	if err != nil {
-		logger.Infof("%v", err)
+		logger.Infof("Form update h2d error: %v", err)
 		return false
 	}
 
@@ -163,14 +164,14 @@ func FormUpdateH2D(db *sql.DB, day *time.Time, msg *string) bool {
 func FormUpdateHST(db *sql.DB, day *time.Time, msg *string) bool {
 	formUpdate, err := db.Prepare("UPDATE form SET hst = ? WHERE date = ?")
 	if err != nil {
-		logger.Infof("%v", err)
+		logger.Infof("Form update hst error: %v", err)
 		return false
 	}
 	defer formUpdate.Close()
 
 	_, err = formUpdate.Exec(msg, day.Format("2006-01-02"))
 	if err != nil {
-		logger.Infof("%v", err)
+		logger.Infof("Form update hst error: %v", err)
 		return false
 	}
 
@@ -180,14 +181,14 @@ func FormUpdateHST(db *sql.DB, day *time.Time, msg *string) bool {
 func FormUpdateWeatherChanges(db *sql.DB, day *time.Time, userName *string, msg *string) bool {
 	formUpdate, err := db.Prepare("INSERT INTO form_weather_changes(date, username, changes) VALUES(?, ?, ?)")
 	if err != nil {
-		logger.Infof("%v", err)
+		logger.Infof("Form update weather changes error: %v", err)
 		return false
 	}
 	defer formUpdate.Close()
 
 	_, err = formUpdate.Exec(day.Format("2006-01-02"), *userName, *msg)
 	if err != nil {
-		logger.Infof("%v", err)
+		logger.Infof("Form update weather changes error: %v", err)
 		return false
 	}
 
@@ -197,14 +198,14 @@ func FormUpdateWeatherChanges(db *sql.DB, day *time.Time, userName *string, msg 
 func FormUpdateComments(db *sql.DB, day *time.Time, msg *string) bool {
 	formUpdate, err := db.Prepare("UPDATE form SET comments = ? WHERE date = ?")
 	if err != nil {
-		logger.Infof("Form insert error: %v", err)
+		logger.Infof("Form update comments error: %v", err)
 		return false
 	}
 	defer formUpdate.Close()
 
 	_, err = formUpdate.Exec(*msg, day.Format("2006-01-02"))
 	if err != nil {
-		logger.Infof("Form insert error: %v", err)
+		logger.Infof("Form update comments error: %v", err)
 		return false
 	}
 
@@ -265,6 +266,7 @@ func FormComplete(db *sql.DB, day *time.Time) bool {
 func FormIsCompleted(db *sql.DB, day *time.Time) bool {
 	formFilled, err := db.Prepare("SELECT completed FROM form WHERE date = ?")
 	if err != nil {
+		logger.Infof("Form completed select error: %v", err)
 		return false
 	}
 	defer formFilled.Close()
@@ -272,6 +274,7 @@ func FormIsCompleted(db *sql.DB, day *time.Time) bool {
 	filled := false
 	err = formFilled.QueryRow(day.Format("2006-01-02")).Scan(&filled)
 	if err != nil {
+		logger.Infof("Form completed select error: %v", err)
 		return false
 	}
 
@@ -305,18 +308,20 @@ func FormConfirm(db *sql.DB, day *time.Time, userName *string) bool {
 			logger.Infof("Form confirm error: %v", err)
 			return false
 		}
-	} else {
-		formStatus, err = db.Prepare("UPDATE form_status SET status = 'YES' WHERE date = ? AND username = ?")
-		if err != nil {
-			logger.Infof("Form confirm error: %v", err)
-			return false
-		}
 
-		_, err = formStatus.Exec(day.Format("2006-01-02"), *userName)
-		if err != nil {
-			logger.Infof("Form confirm error: %v", err)
-			return false
-		}
+		return true
+	}
+
+	formStatus, err = db.Prepare("UPDATE form_status SET status = 'YES' WHERE date = ? AND username = ?")
+	if err != nil {
+		logger.Infof("Form confirm error: %v", err)
+		return false
+	}
+
+	_, err = formStatus.Exec(day.Format("2006-01-02"), *userName)
+	if err != nil {
+		logger.Infof("Form confirm error: %v", err)
+		return false
 	}
 
 	return true
@@ -349,18 +354,20 @@ func FormDecline(db *sql.DB, day *time.Time, userName *string, msg *string) bool
 			logger.Infof("Form decline error: %v", err)
 			return false
 		}
-	} else {
-		formStatus, err = db.Prepare("UPDATE form_status SET status = 'NO', comment = ? WHERE date = ? AND username = ?")
-		if err != nil {
-			logger.Infof("Form decline error: %v", err)
-			return false
-		}
 
-		_, err = formStatus.Exec(*msg, day.Format("2006-01-02"), *userName)
-		if err != nil {
-			logger.Infof("Form decline error: %v", err)
-			return false
-		}
+		return true
+	}
+
+	formStatus, err = db.Prepare("UPDATE form_status SET status = 'NO', comment = ? WHERE date = ? AND username = ?")
+	if err != nil {
+		logger.Infof("Form decline error: %v", err)
+		return false
+	}
+
+	_, err = formStatus.Exec(*msg, day.Format("2006-01-02"), *userName)
+	if err != nil {
+		logger.Infof("Form decline error: %v", err)
+		return false
 	}
 
 	return true
@@ -404,14 +411,14 @@ func FormGetWeatherChangesList(db *sql.DB, day *time.Time) []string {
 func FormGetProblemList(db *sql.DB, day *time.Time) []ctx.FormProblemReadOnlyStruct {
 	formSelect, err := db.Prepare("SELECT type, location, likelyhood, size FROM form_problems WHERE date = ?")
 	if err != nil {
-		logger.Errorf("Form get error: %v", err)
+		logger.Errorf("Form get problem list error: %v", err)
 		return nil
 	}
 	defer formSelect.Close()
 
 	rows, err := formSelect.Query(day.Format("2006-01-02"))
 	if err != nil {
-		logger.Errorf("Form get error: %v", err)
+		logger.Errorf("Form get problem list error: %v", err)
 		return nil
 	}
 	defer rows.Close()
@@ -421,7 +428,7 @@ func FormGetProblemList(db *sql.DB, day *time.Time) []ctx.FormProblemReadOnlyStr
 	for rows.Next() {
 		err = rows.Scan(&buf.ProblemType, &buf.ProblemLocation, &buf.ProblemLikelyHood, &buf.ProblemSize)
 		if err != nil {
-			logger.Errorf("Form get error: %v", err)
+			logger.Errorf("Form get problem list error: %v", err)
 			return nil
 		}
 
@@ -429,7 +436,7 @@ func FormGetProblemList(db *sql.DB, day *time.Time) []ctx.FormProblemReadOnlyStr
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.Errorf("GetProblemList got error: %v", err)
+		logger.Errorf("Form get problem list error: %v", err)
 		return nil
 	}
 
@@ -447,14 +454,14 @@ func FormGetStatusList(db *sql.DB, day *time.Time, confirm bool) []ctx.FormStatu
 
 	formSelect, err := db.Prepare("SELECT username, comment FROM form_status WHERE date = ? AND status = ?")
 	if err != nil {
-		logger.Errorf("Form get error: %v", err)
+		logger.Errorf("Form get status list error: %v", err)
 		return nil
 	}
 	defer formSelect.Close()
 
 	rows, err := formSelect.Query(day.Format("2006-01-02"), status)
 	if err != nil {
-		logger.Errorf("Form get error: %v", err)
+		logger.Errorf("Form get status list error: %v", err)
 		return nil
 	}
 	defer rows.Close()
@@ -465,7 +472,7 @@ func FormGetStatusList(db *sql.DB, day *time.Time, confirm bool) []ctx.FormStatu
 	for rows.Next() {
 		err = rows.Scan(&buf.Username, &comment)
 		if err != nil {
-			logger.Errorf("Form get error: %v", err)
+			logger.Errorf("Form get status list error: %v", err)
 			return nil
 		}
 
@@ -477,7 +484,7 @@ func FormGetStatusList(db *sql.DB, day *time.Time, confirm bool) []ctx.FormStatu
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.Errorf("GetStatusList got error: %v", err)
+		logger.Errorf("Form get status list error: %v", err)
 		return nil
 	}
 
@@ -493,7 +500,7 @@ func FormGetOne(db *sql.DB, day *time.Time) (ctx.FormStruct, error) {
        	avalanche_confidence_alp, avalanche_confidence_tree, avalanche_confidence_btree
         FROM form WHERE date = ?`)
 	if err != nil {
-		logger.Errorf("Form get error: %v", err)
+		logger.Errorf("Form get one error: %v", err)
 		return form, err
 	}
 	defer formSelect.Close()
@@ -503,7 +510,7 @@ func FormGetOne(db *sql.DB, day *time.Time) (ctx.FormStruct, error) {
 		&form.AvalancheForAlp, &form.AvalancheForTree, &form.AvalancheForBTree,
 		&form.AvalancheConfAlp, &form.AvalancheConfTree, &form.AvalancheConfBTree)
 	if err != nil {
-		logger.Errorf("Form get error: %v", err)
+		logger.Errorf("Form get one error: %v", err)
 		return form, err
 	}
 
@@ -526,11 +533,11 @@ func FormGetDatesList(db *sql.DB, count int) []string {
 	defer rows.Close()
 
 	var buf string
-	result := make([]string, 0, 0)
+	result := make([]string, 0)
 	for rows.Next() {
 		err = rows.Scan(&buf)
 		if err != nil {
-			logger.Errorf("Form get error: %v", err)
+			logger.Errorf("Form dates get error: %v", err)
 			return nil
 		}
 
@@ -538,7 +545,7 @@ func FormGetDatesList(db *sql.DB, count int) []string {
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.Errorf("GetDatesList got error: %v", err)
+		logger.Errorf("Form dates get error: %v", err)
 		return nil
 	}
 

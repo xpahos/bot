@@ -39,6 +39,7 @@ func UsersCheckTrusted(db *sql.DB, cache map[string]bool, update *tgbotapi.Updat
 
 	// something strange
 	if user != userName {
+		logger.Errorf("Users get chat_id error: got an unexpected user %q, want %q", user, userName)
 		return false
 	}
 
@@ -108,7 +109,7 @@ func UsersGetList(db *sql.DB) []string {
 	defer userSelect.Close()
 
 	var buf string
-	result := make([]string, 0, 9)
+	result := make([]string, 0, 16)
 	for userSelect.Next() {
 		err = userSelect.Scan(&buf)
 		if err != nil {
@@ -193,7 +194,7 @@ func UsersUpdateNotificationsTime(db *sql.DB, user *string, val int, flag int) b
 	case ctx.SettingsTimeZoneUpdate:
 		field = "time_zone"
 	default:
-		logger.Errorf("Incorrect flag for notifications time update")
+		logger.Errorf("Incorrect flag for notifications time update: %q", flag)
 		return false
 	}
 
@@ -237,6 +238,8 @@ func UsersGetAllNotifiable(db *sql.DB) []ctx.UsersNotificationDurationStruct {
 	return result
 }
 
+var errEmpty = errors.New("Empty")
+
 func UsersGetOneNotifiable(db *sql.DB, user *string) (ctx.UsersNotificationDurationStruct, error) {
 	var result ctx.UsersNotificationDurationStruct
 
@@ -245,14 +248,14 @@ func UsersGetOneNotifiable(db *sql.DB, user *string) (ctx.UsersNotificationDurat
 		FROM users WHERE notifications = true AND chat_id IS NOT NULL AND username = ?`)
 	if err != nil {
 		logger.Errorf("Users notifiable get error: %v", err)
-		return result, errors.New("Empty")
+		return result, errEmpty
 	}
 	defer userSelect.Close()
 
 	err = userSelect.QueryRow(*user).Scan(&result.Username, &result.ChatID, &result.TimeStart, &result.TimeEnd, &result.TimeZone)
 	if err != nil {
 		logger.Errorf("Users notifiable get error: %v", err)
-		return result, errors.New("Empty")
+		return result, errEmpty
 	}
 
 	return result, nil
